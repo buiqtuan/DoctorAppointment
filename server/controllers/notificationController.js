@@ -1,33 +1,168 @@
-const Notification = require("../models/notificationModel");
+const { Notification } = global.db;
+const { Op } = require('sequelize');
 
 /**
  * Get all notifications for a user
- * @param {Object} req - Express request object containing user ID in locals
- * @param {Object} res - Express response object
- * @returns {Object} JSON response with notifications or error message
+ * @param {Object} req - Request with user ID in locals
+ * @param {Object} res - Response object
  */
-const getallnotifs = async (req, res) => {
+const getAllNotifications = async (req, res) => {
   try {
-    // Extract user ID from request locals
     const userId = req.locals;
     
-    // Find all notifications for this user
-    const notifications = await Notification.find({ userId });
+    // Get all notifications for the user, ordered by creation date
+    const notifications = await Notification.findAll({
+      where: { userId },
+      order: [['createdAt', 'DESC']]
+    });
     
-    // Return notifications as JSON response
     return res.status(200).json(notifications);
   } catch (error) {
-    // Log error details for debugging
-    console.error("Error fetching notifications:", error);
+    console.error("Get notifications error:", error);
+    return res.status(500).send("Error retrieving notifications");
+  }
+};
+
+/**
+ * Mark a notification as read
+ * @param {Object} req - Request with notification ID
+ * @param {Object} res - Response object
+ */
+const markAsRead = async (req, res) => {
+  try {
+    const { notificationId } = req.body;
+    const userId = req.locals;
     
-    // Send appropriate error response
-    return res.status(500).json({ 
-      message: "Unable to get all notifications",
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    // Update the notification
+    const result = await Notification.update(
+      { isRead: true },
+      { 
+        where: { 
+          id: notificationId,
+          userId: userId // Ensure the notification belongs to the user
+        }
+      }
+    );
+    
+    // Check if any row was updated
+    if (result[0] === 0) {
+      return res.status(404).send("Notification not found or not owned by the user");
+    }
+    
+    return res.status(200).send("Notification marked as read");
+  } catch (error) {
+    console.error("Mark notification error:", error);
+    return res.status(500).send("Error updating notification");
+  }
+};
+
+/**
+ * Mark all notifications as read for a user
+ * @param {Object} req - Request with user ID in locals
+ * @param {Object} res - Response object
+ */
+const markAllAsRead = async (req, res) => {
+  try {
+    const userId = req.locals;
+    
+    // Update all unread notifications for the user
+    await Notification.update(
+      { isRead: true },
+      { 
+        where: { 
+          userId: userId,
+          isRead: false
+        }
+      }
+    );
+    
+    return res.status(200).send("All notifications marked as read");
+  } catch (error) {
+    console.error("Mark all notifications error:", error);
+    return res.status(500).send("Error updating notifications");
+  }
+};
+
+/**
+ * Delete a notification
+ * @param {Object} req - Request with notification ID
+ * @param {Object} res - Response object
+ */
+const deleteNotification = async (req, res) => {
+  try {
+    const { notificationId } = req.params;
+    const userId = req.locals;
+    
+    // Delete the notification
+    const result = await Notification.destroy({
+      where: { 
+        id: notificationId,
+        userId: userId // Ensure the notification belongs to the user
+      }
     });
+    
+    // Check if any row was deleted
+    if (result === 0) {
+      return res.status(404).send("Notification not found or not owned by the user");
+    }
+    
+    return res.status(200).send("Notification deleted successfully");
+  } catch (error) {
+    console.error("Delete notification error:", error);
+    return res.status(500).send("Error deleting notification");
+  }
+};
+
+/**
+ * Delete all notifications for a user
+ * @param {Object} req - Request with user ID in locals
+ * @param {Object} res - Response object
+ */
+const deleteAllNotifications = async (req, res) => {
+  try {
+    const userId = req.locals;
+    
+    // Delete all notifications for the user
+    await Notification.destroy({
+      where: { userId }
+    });
+    
+    return res.status(200).send("All notifications deleted successfully");
+  } catch (error) {
+    console.error("Delete all notifications error:", error);
+    return res.status(500).send("Error deleting notifications");
+  }
+};
+
+/**
+ * Get unread notification count for a user
+ * @param {Object} req - Request with user ID in locals
+ * @param {Object} res - Response object
+ */
+const getUnreadCount = async (req, res) => {
+  try {
+    const userId = req.locals;
+    
+    // Count unread notifications
+    const count = await Notification.count({
+      where: { 
+        userId,
+        isRead: false
+      }
+    });
+    
+    return res.status(200).json({ count });
+  } catch (error) {
+    console.error("Get unread count error:", error);
+    return res.status(500).send("Error counting notifications");
   }
 };
 
 module.exports = {
-  getallnotifs,
+  getAllNotifications,
+  markAsRead,
+  markAllAsRead,
+  deleteNotification,
+  deleteAllNotifications,
+  getUnreadCount
 };

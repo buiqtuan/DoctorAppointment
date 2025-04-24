@@ -1,5 +1,4 @@
 const jwt = require("jsonwebtoken");
-const { User } = require("../models");
 
 /**
  * Authentication middleware using JSON Web Tokens (JWT)
@@ -11,7 +10,7 @@ const { User } = require("../models");
  * @param {Function} next - Express next middleware function
  * @returns {void}
  */
-const auth = async (req, res, next) => {
+const auth = (req, res, next) => {
   try {
     // Extract the token from the Authorization header
     const authHeader = req.headers.authorization;
@@ -29,12 +28,6 @@ const auth = async (req, res, next) => {
     try {
       // Verify the token using the secret key
       const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-      
-      // Verify that the user exists in the database
-      const user = await User.findByPk(decodedToken.userId);
-      if (!user) {
-        return res.status(401).send("User not found");
-      }
       
       // Attach the user ID from the token to the request object
       req.locals = decodedToken.userId;

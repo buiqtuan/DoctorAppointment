@@ -1,78 +1,107 @@
-const mongoose = require("mongoose");
+const { DataTypes } = require('sequelize');
 
 /**
- * Appointment Schema
- * Stores details about doctor appointments including patient information,
- * scheduling details, and appointment status
+ * Appointment Model for MySQL using Sequelize
+ * 
+ * @param {Object} sequelize - Sequelize instance
+ * @returns {Object} Appointment model
  */
-const appointmentSchema = new mongoose.Schema(
-  {
+module.exports = (sequelize) => {
+  /**
+   * Appointment Model
+   * Stores details about doctor appointments including patient information,
+   * scheduling details, and appointment status
+   */
+  const Appointment = sequelize.define('Appointment', {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true
+    },
     // Reference to the patient user
     userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'Users',
+        key: 'id'
+      }
     },
     // Reference to the doctor user
     doctorId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'Users',
+        key: 'id'
+      }
     },
     // Appointment date
     date: {
-      type: String,
-      required: true,
+      type: DataTypes.DATEONLY,
+      allowNull: false
     },
     // Appointment time
     time: {
-      type: String,
-      required: true,
+      type: DataTypes.TIME,
+      allowNull: false
     },
     // Patient age
     age: {
-      type: Number,
-      required: true,
+      type: DataTypes.INTEGER,
+      allowNull: false
     },
     // Patient blood group (optional)
     bloodGroup: {
-      type: String,
-      required: false,
+      type: DataTypes.STRING(5),
+      allowNull: true
     },
     // Patient gender
     gender: {
-      type: String,
-      required: true,
-      enum: ["male", "female", "other"],
+      type: DataTypes.ENUM('male', 'female', 'other'),
+      allowNull: false
     },
     // Contact number
     number: {
-      type: Number,
-      required: true,
+      type: DataTypes.STRING(15),
+      allowNull: false
     },
     // Family medical history (optional)
     familyDiseases: {
-      type: String,
-      required: false,
+      type: DataTypes.TEXT,
+      allowNull: true
     },
     // Appointment status (defaults to Pending)
     status: {
-      type: String,
-      default: "Pending",
-    },
-    // Prescription field is commented out for future implementation
+      type: DataTypes.STRING(20),
+      defaultValue: 'Pending'
+    }
+    // Future implementation
     // prescription: {
-    //   type: String,
-    //   required: false,
-    // },
-  },
-  {
-    // Automatically add createdAt and updatedAt timestamps
-    timestamps: true,
-  }
-);
+    //   type: DataTypes.TEXT,
+    //   allowNull: true
+    // }
+  }, {
+    // Enable timestamps (createdAt, updatedAt)
+    timestamps: true
+  });
 
-// Create the model using the schema
-const Appointment = mongoose.model("Appointment", appointmentSchema);
+  // Define associations
+  Appointment.associate = (models) => {
+    // Association with User model (patient)
+    Appointment.belongsTo(models.User, {
+      foreignKey: 'userId',
+      as: 'patient',
+      onDelete: 'CASCADE'
+    });
+    
+    // Association with User model (doctor)
+    Appointment.belongsTo(models.User, {
+      foreignKey: 'doctorId',
+      as: 'doctor',
+      onDelete: 'CASCADE'
+    });
+  };
 
-module.exports = Appointment;
+  return Appointment;
+};

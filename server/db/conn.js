@@ -1,34 +1,57 @@
 /**
- * Database connection module using MongoDB and Mongoose
+ * Database connection module using MySQL and Sequelize
  */
-const mongoose = require("mongoose");
-const { MongoClient } = require("mongodb"); // This import is maintained for compatibility but not used
-
-// Configure mongoose to avoid deprecation warnings
-mongoose.set("strictQuery", false);
+const { Sequelize } = require('sequelize');
 
 // Load environment variables from .env file
-require("dotenv").config();
+require('dotenv').config();
+
+// Database configuration
+const DB_NAME = process.env.DB_NAME || 'doctor_appointment';
+const DB_USER = process.env.DB_USER || 'root';
+const DB_PASSWORD = process.env.DB_PASSWORD || '';
+const DB_HOST = process.env.DB_HOST || 'localhost';
+const DB_PORT = process.env.DB_PORT || 3306;
+const DB_DIALECT = 'mysql';
 
 /**
- * Establish MongoDB connection using Mongoose
- * The connection promise is stored in client and exported
+ * Initialize Sequelize with database configuration
+ * Sets up connection pool and other options for optimal performance
  */
-const client = mongoose
-  .connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    // Add recommended options for better stability and performance
-    useUnifiedTopology: true,
-    autoIndex: true, // Build indexes
-    serverSelectionTimeoutMS: 5000 // Timeout after 5s instead of 30s default
-  })
+const sequelize = new Sequelize(DB_NAME, DB_USER, DB_PASSWORD, {
+  host: DB_HOST,
+  port: DB_PORT,
+  dialect: DB_DIALECT,
+  logging: process.env.NODE_ENV === 'development' ? console.log : false,
+  pool: {
+    max: 10,              // Maximum number of connection in pool
+    min: 0,               // Minimum number of connection in pool
+    acquire: 30000,       // Maximum time (ms) to acquire a connection
+    idle: 10000           // Maximum time (ms) a connection can be idle
+  },
+  define: {
+    timestamps: true,     // Default timestamps for all models
+    underscored: false    // Don't convert camelCase to snake_case
+  },
+  dialectOptions: {
+    // MySQL specific options
+    dateStrings: true,
+    typeCast: true
+  },
+  timezone: '+00:00'      // UTC timezone for consistent timestamps
+});
+
+/**
+ * Test database connection
+ * Returns a promise that resolves to the Sequelize instance
+ */
+const client = sequelize.authenticate()
   .then(() => {
-    console.log("Database connection established successfully");
-    return mongoose.connection; // Return the connection for potential further use
+    console.log('Database connection established successfully');
+    return sequelize;
   })
   .catch((error) => {
-    console.error("Database connection error:", error);
-    // Re-throw the error to allow proper handling by the application
+    console.error('Database connection error:', error);
     throw error;
   });
 

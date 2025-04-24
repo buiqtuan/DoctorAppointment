@@ -1,5 +1,7 @@
-const { User, Doctor, Notification, Appointment } = require("../models");
-const { Op } = require("sequelize");
+const Doctor = require("../models/_doctorModel");
+const User = require("../models/userModel");
+const Notification = require("../models/_notificationModel");
+const Appointment = require("../models/_appointmentModel");
 
 /**
  * Get all doctors with isDoctor status true
@@ -8,18 +10,14 @@ const { Op } = require("sequelize");
 const getalldoctors = async (req, res) => {
   try {
     // Base query to find active doctors
-    const whereClause = { isDoctor: true };
+    const query = { isDoctor: true };
     
     // Exclude requesting doctor from results if logged in
     if (req.locals) {
-      whereClause.id = { [Op.ne]: req.locals };
+      query._id = { $ne: req.locals };
     }
     
-    const docs = await Doctor.findAll({
-      where: whereClause,
-      include: [{ model: User, as: 'user' }]
-    });
-    
+    const docs = await Doctor.find(query).populate("userId");
     return res.status(200).send(docs);
   } catch (error) {
     console.error("Error fetching doctors:", error);
@@ -32,13 +30,10 @@ const getalldoctors = async (req, res) => {
  */
 const getnotdoctors = async (req, res) => {
   try {
-    const docs = await Doctor.findAll({
-      where: {
-        isDoctor: false,
-        userId: { [Op.ne]: req.locals }
-      },
-      include: [{ model: User, as: 'user' }]
-    });
+    const docs = await Doctor.find({
+      isDoctor: false,
+      _id: { $ne: req.locals }
+    }).populate("userId");
 
     return res.status(200).send(docs);
   } catch (error) {
@@ -53,19 +48,17 @@ const getnotdoctors = async (req, res) => {
 const applyfordoctor = async (req, res) => {
   try {
     // Check if user already has an application
-    const existingApplication = await Doctor.findOne({ 
-      where: { userId: req.locals }
-    });
-    
+    const existingApplication = await Doctor.findOne({ userId: req.locals });
     if (existingApplication) {
       return res.status(400).send("Application already exists");
     }
 
     // Create and save new doctor application
-    await Doctor.create({ 
+    const doctor = new Doctor({ 
       ...req.body.formDetails, 
       userId: req.locals 
     });
+    await doctor.save();
 
     return res.status(201).send("Application submitted successfully");
   } catch (error) {
@@ -82,22 +75,23 @@ const acceptdoctor = async (req, res) => {
     const userId = req.body.id;
 
     // Update user record
-    await User.update(
-      { isDoctor: true, status: "accepted" },
-      { where: { id: userId } }
-    );
+    await User.findByIdAndUpdate(userId, {
+      isDoctor: true, 
+      status: "accepted" 
+    });
 
     // Update doctor record
-    await Doctor.update(
-      { isDoctor: true },
-      { where: { userId } }
+    await Doctor.findOneAndUpdate(
+      { userId }, 
+      { isDoctor: true }
     );
 
     // Create and send notification
-    await Notification.create({
+    const notification = new Notification({
       userId,
       content: `Congratulations, Your application has been accepted.`,
     });
+    await notification.save();
 
     return res.status(201).send("Application accepted notification sent");
   } catch (error) {
@@ -114,19 +108,20 @@ const rejectdoctor = async (req, res) => {
     const userId = req.body.id;
     
     // Update user status
-    await User.update(
-      { isDoctor: false, status: "rejected" },
-      { where: { id: userId } }
-    );
+    await User.findByIdAndUpdate(userId, {
+      isDoctor: false, 
+      status: "rejected" 
+    });
     
     // Remove doctor application
-    await Doctor.destroy({ where: { userId } });
+    await Doctor.findOneAndDelete({ userId });
 
     // Create and send rejection notification
-    await Notification.create({
+    const notification = new Notification({
       userId,
       content: `Sorry, Your application has been rejected.`,
     });
+    await notification.save();
 
     return res.status(201).send("Application rejection notification sent");
   } catch (error) {
@@ -143,15 +138,12 @@ const deletedoctor = async (req, res) => {
     const { userId } = req.body;
     
     // Update user record
-    await User.update(
-      { isDoctor: false },
-      { where: { id: userId } }
-    );
+    await User.findByIdAndUpdate(userId, { isDoctor: false });
     
-    // Delete doctor record and any appointments in parallel
+    // Delete doctor record and any appointments
     await Promise.all([
-      Doctor.destroy({ where: { userId } }),
-      Appointment.destroy({ where: { userId } })
+      Doctor.findOneAndDelete({ userId }),
+      Appointment.findOneAndDelete({ userId })
     ]);
     
     return res.status(200).send("Doctor deleted successfully");

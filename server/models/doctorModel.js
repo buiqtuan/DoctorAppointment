@@ -1,54 +1,69 @@
-/**
- * Doctor model schema definition
- */
-const mongoose = require("mongoose");
+const { DataTypes } = require('sequelize');
 
 /**
- * Doctor schema
- * Defines the structure for doctor documents in MongoDB
+ * Doctor Model for MySQL using Sequelize
+ * 
+ * @param {Object} sequelize - Sequelize instance
+ * @returns {Object} Doctor model
  */
-const doctorSchema = mongoose.Schema(
-  {
-    // Reference to the associated User document
-    userId: {
-      type: mongoose.SchemaTypes.ObjectId,
-      ref: "User",
-      required: true,
+module.exports = (sequelize) => {
+  /**
+   * Doctor Model
+   * Defines the structure for doctor records
+   */
+  const Doctor = sequelize.define('Doctor', {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true
     },
-    
+    // Reference to the associated User
+    userId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      unique: true,
+      references: {
+        model: 'Users',
+        key: 'id'
+      }
+    },
     // Doctor's medical specialization
     specialization: {
-      type: String,
-      required: true,
-      trim: true, // Removes whitespace from both ends
+      type: DataTypes.STRING(100),
+      allowNull: false
     },
-    
     // Years of professional experience
     experience: {
-      type: Number,
-      required: true,
-      min: 0, // Experience cannot be negative
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      validate: {
+        min: 0 // Experience cannot be negative
+      }
     },
-    
     // Consultation fees
     fees: {
-      type: Number,
-      required: true,
-      min: 0, // Fees cannot be negative
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: false,
+      validate: {
+        min: 0 // Fees cannot be negative
+      }
     },
-    
     // Flag to identify verified doctors
     isDoctor: {
-      type: Boolean,
-      default: false, // Not verified by default
-    },
-  },
-  {
-    timestamps: true, // Automatically add createdAt and updatedAt fields
-  }
-);
+      type: DataTypes.BOOLEAN,
+      defaultValue: false // Not verified by default
+    }
+  }, {
+    timestamps: true // Adds createdAt and updatedAt fields
+  });
 
-// Create model from schema
-const Doctor = mongoose.model("Doctor", doctorSchema);
+  // Define associations
+  Doctor.associate = (models) => {
+    Doctor.belongsTo(models.User, {
+      foreignKey: 'userId',
+      onDelete: 'CASCADE'
+    });
+  };
 
-module.exports = Doctor;
+  return Doctor;
+};

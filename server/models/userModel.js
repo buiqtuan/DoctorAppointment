@@ -1,78 +1,120 @@
-/**
- * User Model Schema Definition
- * Defines the structure for User documents in MongoDB
- */
-const mongoose = require("mongoose");
+const { DataTypes } = require('sequelize');
 
-// Define the User schema with validation rules
-const userSchema = mongoose.Schema(
-  {
+/**
+ * User Model for MySQL using Sequelize
+ * Converted from the original MongoDB schema
+ * 
+ * @param {Object} sequelize - Sequelize instance
+ * @returns {Object} User model
+ */
+module.exports = (sequelize) => {
+  /**
+   * User Model
+   * Defines the structure for User records in the database
+   */
+  const User = sequelize.define('User', {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true
+    },
     // Personal information
     firstname: {
-      type: String,
-      required: true,
-      minLength: 3,
-      trim: true // Added trim to remove whitespace
+      type: DataTypes.STRING(100),
+      allowNull: false,
+      validate: {
+        len: [3, 100] // Minimum length 3
+      }
     },
     lastname: {
-      type: String,
-      required: true,
-      minLength: 3,
-      trim: true
+      type: DataTypes.STRING(100),
+      allowNull: false,
+      validate: {
+        len: [3, 100] // Minimum length 3
+      }
     },
     email: {
-      type: String,
-      required: true,
+      type: DataTypes.STRING(100),
+      allowNull: false,
       unique: true,
-      trim: true,
-      lowercase: true // Ensures email is stored in lowercase
+      validate: {
+        isEmail: true,
+        notNull: {
+          msg: 'Email address is required'
+        }
+      },
+      set(value) {
+        // Ensure email is stored in lowercase
+        this.setDataValue('email', value.toLowerCase());
+      }
     },
     password: {
-      type: String,
-      required: true,
-      minLength: 5
+      type: DataTypes.STRING(255),
+      allowNull: false,
+      validate: {
+        len: [5, 255] // Minimum length 5
+      }
     },
     role: {
-      type: String,
-      required: true,
-      enum: ["Admin", "Doctor", "Patient"]
+      type: DataTypes.ENUM('Admin', 'Doctor', 'Patient'),
+      allowNull: false
     },
     
     // Optional user details with default values
     age: {
-      type: Number,
-      default: null // Changed empty string to null for proper typing
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      defaultValue: null
     },
     gender: {
-      type: String,
-      enum: ["Male", "Female", "Other", ""], // Added enum for standardization
-      default: ""
+      type: DataTypes.ENUM('Male', 'Female', 'Other', ''),
+      defaultValue: ''
     },
     mobile: {
-      type: String, // Changed to String to handle country codes and formatting
-      default: ""
+      type: DataTypes.STRING(20),
+      defaultValue: ''
     },
     address: {
-      type: String,
-      default: "",
-      trim: true
+      type: DataTypes.TEXT,
+      defaultValue: ''
     },
     status: {
-      type: String,
-      default: "",
-      trim: true
+      type: DataTypes.STRING(50),
+      defaultValue: ''
     },
     pic: {
-      type: String,
-      default: "https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg"
+      type: DataTypes.STRING(255),
+      defaultValue: 'https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg'
     }
-  },
-  {
-    timestamps: true, // Automatically add createdAt and updatedAt fields
-    versionKey: false // Removes the __v field from documents
-  }
-);
+  }, {
+    // Enable timestamps (createdAt, updatedAt)
+    timestamps: true
+  });
 
-// Create and export the User model
-const User = mongoose.model("User", userSchema);
-module.exports = User;
+  // Define associations
+  User.associate = (models) => {
+    // User can have many appointments as a patient
+    User.hasMany(models.Appointment, {
+      foreignKey: 'userId',
+      as: 'patientAppointments'
+    });
+    
+    // User can have many appointments as a doctor
+    User.hasMany(models.Appointment, {
+      foreignKey: 'doctorId',
+      as: 'doctorAppointments'
+    });
+    
+    // Doctor association
+    User.hasOne(models.Doctor, {
+      foreignKey: 'userId'
+    });
+    
+    // Notifications received by this user
+    User.hasMany(models.Notification, {
+      foreignKey: 'userId'
+    });
+  };
+
+  return User;
+};

@@ -1,36 +1,48 @@
-/**
- * Google Authentication User Schema
- * This module defines the data structure for users authenticated via Google OAuth
- */
-const mongoose = require("mongoose");
+const { DataTypes } = require('sequelize');
 
-// Define the schema with proper validation and indexing
-const userSchema = new mongoose.Schema({
+/**
+ * Google Authentication User Model
+ * This module defines the data structure for users authenticated via Google OAuth
+ * 
+ * @param {Object} sequelize - Sequelize instance
+ * @returns {Object} GUser model
+ */
+module.exports = (sequelize) => {
+  /**
+   * Google User Model
+   * Stores information about users who authenticate via Google OAuth
+   */
+  const GUser = sequelize.define('GUser', {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true
+    },
     googleId: {
-        type: String,
-        required: true,
-        unique: true,
-        index: true
+      type: DataTypes.STRING(100),
+      allowNull: false,
+      unique: true
     },
     displayName: {
-        type: String,
-        required: true
+      type: DataTypes.STRING(100),
+      allowNull: false
     },
     email: {
-        type: String,
-        required: true,
-        index: true
+      type: DataTypes.STRING(100),
+      allowNull: false,
+      unique: true,
+      validate: {
+        isEmail: true
+      }
     },
     image: {
-        type: String,
-        default: null
+      type: DataTypes.STRING(255),
+      allowNull: true,
+      defaultValue: null
     }
-}, { 
-    timestamps: true 
-});
+  }, {
+    timestamps: true // Adds createdAt and updatedAt fields
+  });
 
-// Create the model using the schema
-const Guser = mongoose.model("GUser", userSchema);
-
-// Export the model
-module.exports = Guser;
+  return GUser;
+};

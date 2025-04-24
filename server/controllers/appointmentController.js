@@ -1,72 +1,87 @@
-const Appointment = require("../models/appointmentModel");
-const Notification = require("../models/notificationModel");
-const User = require("../models/userModel");
+const { User, Appointment, Notification, Doctor } = require("../models");
 
 /**
- * Get all appointments with optional filtering
- * @param {Object} req - Request object with optional search query
+ * Get all appointments for a specific user or doctor
+ * @param {Object} req - Request with user ID
  * @param {Object} res - Response object
  */
 const getallappointments = async (req, res) => {
   try {
-    // Create search filter if search query exists
-    const keyword = req.query.search
-      ? {
-          $or: [{ userId: req.query.search }, { doctorId: req.query.search }],
-        }
-      : {};
-
-    // Find appointments and populate related doctor and user data
-    const appointments = await Appointment.find(keyword)
-      .populate("doctorId")
-      .populate("userId");
+    // Find the current user
+    const user = await User.findByPk(req.locals);
     
-    return res.send(appointments);
+    // If user not found
+    if (!user) {
+      return res.status(404).send("User not found");
+    }
+
+    let appointments;
+    
+    // If user is a doctor, get appointments where doctorId matches user's ID
+    if (user.isDoctor) {
+      appointments = await Appointment.findAll({
+        where: { doctorId: req.locals },
+        include: [
+          { model: User, as: 'patient', attributes: ['firstname', 'lastname', 'email', 'mobile', 'pic'] }
+        ],
+        order: [['createdAt', 'DESC']]
+      });
+    } else {
+      // If user is a patient, get appointments where userId matches user's ID
+      appointments = await Appointment.findAll({
+        where: { userId: req.locals },
+        include: [
+          { model: User, as: 'doctor', attributes: ['firstname', 'lastname', 'email', 'mobile', 'pic'] }
+        ],
+        order: [['createdAt', 'DESC']]
+      });
+    }
+
+    return res.status(200).send(appointments);
   } catch (error) {
-    console.error("Error getting appointments:", error);
+    console.error("Error fetching appointments:", error);
     res.status(500).send("Unable to get appointments");
   }
 };
 
 /**
- * Book a new appointment and create notifications
+ * Book a new appointment and send notifications
  * @param {Object} req - Request with appointment details
  * @param {Object} res - Response object
  */
 const bookappointment = async (req, res) => {
   try {
-    // Create new appointment object
-    const appointment = new Appointment({
+    // Find the user and doctor
+    const user = await User.findByPk(req.locals);
+    const doctor = await User.findByPk(req.body.doctorId);
+    
+    if (!user || !doctor) {
+      return res.status(404).send("User or doctor not found");
+    }
+
+    // Create the appointment
+    const appointment = await Appointment.create({
+      userId: req.locals,
+      doctorId: req.body.doctorId,
       date: req.body.date,
       time: req.body.time,
-      age: req.body.age,
-      bloodGroup: req.body.bloodGroup,
-      gender: req.body.gender,
-      number: req.body.number,
-      familyDiseases: req.body.familyDiseases,
-      doctorId: req.body.doctorId,
-      userId: req.locals,
+      age: user.age || req.body.age,
+      gender: user.gender || req.body.gender,
+      bloodGroup: user.bloodGroup || req.body.bloodGroup,
+      number: user.mobile || req.body.number,
+      familyDiseases: req.body.familyDiseases || '',
+      status: "Pending"
     });
 
-    // Get user data for notification
-    const user = await User.findById(req.locals);
-    
     // Create notifications in parallel
     await Promise.all([
-      // Create notification for the user
-      new Notification({
-        userId: req.locals,
-        content: `You booked an appointment with Dr. ${req.body.doctorname} for ${req.body.date} ${req.body.time}`,
-      }).save(),
-      
-      // Create notification for the doctor
-      new Notification({
+      // Notification for doctor
+      Notification.create({
         userId: req.body.doctorId,
-        content: `You have an appointment with ${user.firstname} ${user.lastname} on ${req.body.date} at ${req.body.time} Age: ${user.age} bloodGropu: ${user.bloodGroup} Gender: ${user.gender} Mobile Number:${user.number} Family Diseases ${user.familyDiseases}`,
-      }).save(),
+        content: `You have an appointment with ${user.firstname} ${user.lastname} on ${req.body.date} at ${req.body.time} Age: ${user.age} bloodGroup: ${user.bloodGroup} Gender: ${user.gender} Mobile Number: ${user.mobile} Family Diseases: ${user.familyDiseases}`,
+      }),
       
-      // Save the appointment
-      appointment.save()
+      // No need to wait for appointment creation as it's already created above
     ]);
 
     return res.status(201).send(appointment);
@@ -84,27 +99,27 @@ const bookappointment = async (req, res) => {
 const completed = async (req, res) => {
   try {
     // Update appointment status to completed
-    await Appointment.findOneAndUpdate(
-      { _id: req.body.appointid },
-      { status: "Completed" }
+    await Appointment.update(
+      { status: "Completed" },
+      { where: { id: req.body.appointid } }
     );
 
     // Get user data for notification
-    const user = await User.findById(req.locals);
+    const user = await User.findByPk(req.locals);
     
     // Create notifications in parallel
     await Promise.all([
       // Create notification for the user
-      new Notification({
+      Notification.create({
         userId: req.locals,
         content: `Your appointment with ${req.body.doctorname} has been completed`,
-      }).save(),
+      }),
       
       // Create notification for the doctor
-      new Notification({
+      Notification.create({
         userId: req.body.doctorId,
         content: `Your appointment with ${user.firstname} ${user.lastname} has been completed`,
-      }).save()
+      })
     ]);
 
     return res.status(201).send("Appointment completed");
