@@ -1,27 +1,46 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import "../styles/register.css";
 import Navbar from "../components/Navbar";
 import axios from "axios";
 import toast from "react-hot-toast";
 
+// Set the base URL for all axios requests
 axios.defaults.baseURL = process.env.REACT_APP_SERVER_DOMAIN;
 
+/**
+ * Register Component
+ * 
+ * Handles user registration with profile image upload and role selection.
+ * Includes form validation and secure user registration.
+ */
 function Register() {
-  const [file, setFile] = useState("");
-  const [selectedRole, setSelectedRole] = useState("");
-  const [loading, setLoading] = useState(false);
+  // State for managing the profile picture
+  const [profileImage, setProfileImage] = useState("");
+  
+  // State for tracking image upload status
+  const [isUploading, setIsUploading] = useState(false);
+  
+  // State for form fields
   const [formDetails, setFormDetails] = useState({
     firstname: "",
     lastname: "",
     email: "",
     password: "",
     confpassword: "",
-    role: "", 
   });
+  
+  // State for selected role (separate from form details for better control)
+  const [selectedRole, setSelectedRole] = useState("");
+  
+  // Navigation hook for redirecting after registration
   const navigate = useNavigate();
 
-  const inputChange = (e) => {
+  /**
+   * Handles input field changes
+   * @param {Event} e - The input change event
+   */
+  const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormDetails({
       ...formDetails,
@@ -29,69 +48,156 @@ function Register() {
     });
   };
 
-  const onUpload = async (element) => {
-    setLoading(true);
-    if (
-      element.type === "image/jpeg" ||
-      element.type === "image/png" ||
-      element.type === "image/jpg"
-    ) {
-      const data = new FormData();
-      data.append("file", element);
-      data.append("upload_preset", process.env.REACT_APP_CLOUDINARY_PRESET);
-      data.append("cloud_name", process.env.REACT_APP_CLOUDINARY_CLOUD_NAME);
-      fetch(process.env.REACT_APP_CLOUDINARY_BASE_URL, {
-        method: "POST",
-        body: data,
-      })
-        .then((res) => res.json())
-        .then((data) => setFile(data.url.toString()));
-      setLoading(false);
-    } else {
-      setLoading(false);
-      toast.error("Please select an image in jpeg or png format");
+  /**
+   * Handles file upload to Cloudinary
+   * @param {File} file - The file to upload
+   */
+  const handleImageUpload = useCallback(async (file) => {
+    // If no file is selected, return early
+    if (!file) return;
+    
+    setIsUploading(true);
+    
+    try {
+      // Validate file type
+      if (
+        file.type === "image/jpeg" ||
+        file.type === "image/png" ||
+        file.type === "image/jpg"
+      ) {
+        // Create form data for upload
+        const data = new FormData();
+        data.append("file", file);
+        data.append("upload_preset", process.env.REACT_APP_CLOUDINARY_PRESET);
+        data.append("cloud_name", process.env.REACT_APP_CLOUDINARY_CLOUD_NAME);
+        
+        // Upload to Cloudinary
+        const response = await fetch(process.env.REACT_APP_CLOUDINARY_BASE_URL, {
+          method: "POST",
+          body: data,
+        });
+        
+        // Process response
+        const responseData = await response.json();
+        
+        if (responseData.url) {
+          setProfileImage(responseData.url.toString());
+          toast.success("Image uploaded successfully");
+        } else {
+          toast.error("Image upload failed");
+        }
+      } else {
+        toast.error("Please select an image in JPEG or PNG format");
+      }
+    } catch (error) {
+      console.error("Image upload error:", error);
+      toast.error("Failed to upload image. Please try again.");
+    } finally {
+      setIsUploading(false);
     }
+  }, []);
+
+  /**
+   * Validates form data before submission
+   * @returns {boolean} Whether the form data is valid
+   */
+  const validateForm = () => {
+    const { firstname, lastname, email, password, confpassword } = formDetails;
+    
+    // Check for empty fields
+    if (!firstname || !lastname || !email || !password || !confpassword || !selectedRole) {
+      toast.error("All fields are required");
+      return false;
+    }
+    
+    // Check for profile image
+    if (!profileImage) {
+      toast.error("Please upload a profile picture");
+      return false;
+    }
+    
+    // Validate first name
+    if (firstname.length < 3) {
+      toast.error("First name must be at least 3 characters long");
+      return false;
+    }
+    
+    // Validate last name
+    if (lastname.length < 3) {
+      toast.error("Last name must be at least 3 characters long");
+      return false;
+    }
+    
+    // Validate password
+    if (password.length < 5) {
+      toast.error("Password must be at least 5 characters long");
+      return false;
+    }
+    
+    // Check if passwords match
+    if (password !== confpassword) {
+      toast.error("Passwords do not match");
+      return false;
+    }
+    
+    // Check if role is selected
+    if (!selectedRole) {
+      toast.error("Please select a role");
+      return false;
+    }
+    
+    return true;
   };
 
-  const formSubmit = async (e) => {
+  /**
+   * Handles form submission for user registration
+   * @param {Event} e - The form submission event
+   */
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    // Don't submit if image is still uploading
+    if (isUploading) {
+      toast.error("Please wait for image upload to complete");
+      return;
+    }
+    
+    // Validate form before proceeding
+    if (!validateForm()) return;
+    
     try {
-      e.preventDefault();
-  
-      if (loading) return;
-      if (file === "") return;
-      const { firstname, lastname, email, password, confpassword } = formDetails;
-      if (!firstname || !lastname || !email || !password || !confpassword || !selectedRole) {
-        return toast.error("Input field should not be empty");
-      } else if (firstname.length < 3) {
-        return toast.error("First name must be at least 3 characters long");
-      } else if (lastname.length < 3) {
-        return toast.error("Last name must be at least 3 characters long");
-      } else if (password.length < 5) {
-        return toast.error("Password must be at least 5 characters long");
-      } else if (password !== confpassword) {
-        return toast.error("Passwords do not match");
-      }
-  
+      const { firstname, lastname, email, password } = formDetails;
+      
+      // Register user with toast notifications for different states
       await toast.promise(
         axios.post("/user/register", {
           firstname,
           lastname,
           email,
           password,
-          pic: file,
+          pic: profileImage,
           role: selectedRole,
         }),
         {
-          pending: "Registering user...",
-          success: "User registered successfully",
-          error: "Unable to register user",
-          loading: "Registering user...",
+          pending: "Creating your account...",
+          success: "Registration successful! Please login.",
+          error: "Registration failed. Please try again.",
         }
       );
-      return navigate("/login");
-    } catch (error) {}
+      
+      // Navigate to login page after successful registration
+      navigate("/login");
+    } catch (error) {
+      console.error("Registration error:", error);
+      
+      // Display specific error message if available from server
+      if (error.response && error.response.data && error.response.data.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error("Registration failed. Please try again later.");
+      }
+    }
   };
-  
 
   return (
     <>
@@ -99,59 +205,98 @@ function Register() {
       <section className="register-section flex-center">
         <div className="register-container flex-center">
           <h2 className="form-heading">Sign Up</h2>
-          <form onSubmit={formSubmit} className="register-form">
+          
+          {/* Registration form */}
+          <form onSubmit={handleSubmit} className="register-form">
+            {/* First name input */}
             <input
               type="text"
               name="firstname"
               className="form-input"
               placeholder="Enter your first name"
               value={formDetails.firstname}
-              onChange={inputChange}
+              onChange={handleInputChange}
+              aria-label="First name"
             />
+            
+            {/* Last name input */}
             <input
               type="text"
               name="lastname"
               className="form-input"
               placeholder="Enter your last name"
               value={formDetails.lastname}
-              onChange={inputChange}
+              onChange={handleInputChange}
+              aria-label="Last name"
             />
+            
+            {/* Email input */}
             <input
               type="email"
               name="email"
               className="form-input"
               placeholder="Enter your email"
               value={formDetails.email}
-              onChange={inputChange}
+              onChange={handleInputChange}
+              aria-label="Email address"
             />
+            
+            {/* Profile picture upload */}
             <input
               type="file"
-              onChange={(e) => onUpload(e.target.files[0])}
+              onChange={(e) => handleImageUpload(e.target.files[0])}
               name="profile-pic"
               id="profile-pic"
               className="form-input"
+              accept="image/jpeg,image/png,image/jpg"
+              aria-label="Profile picture"
             />
+            
+            {/* Display upload status */}
+            {isUploading && (
+              <p className="upload-status">Uploading image, please wait...</p>
+            )}
+            
+            {/* Display uploaded image preview */}
+            {profileImage && (
+              <div className="image-preview">
+                <img 
+                  src={profileImage} 
+                  alt="Profile preview" 
+                  className="preview-img"
+                />
+              </div>
+            )}
+            
+            {/* Password input */}
             <input
               type="password"
               name="password"
               className="form-input"
               placeholder="Enter your password"
               value={formDetails.password}
-              onChange={inputChange}
+              onChange={handleInputChange}
+              aria-label="Password"
             />
+            
+            {/* Confirm password input */}
             <input
               type="password"
               name="confpassword"
               className="form-input"
               placeholder="Confirm your password"
               value={formDetails.confpassword}
-              onChange={inputChange}
+              onChange={handleInputChange}
+              aria-label="Confirm password"
             />
+            
+            {/* Role selection */}
             <select
               name="role"
               value={selectedRole}
               onChange={(e) => setSelectedRole(e.target.value)}
               className="form-input"
+              aria-label="Select your role"
             >
               <option value="">Select Role</option>
               <option value="Admin">Admin</option>
@@ -159,14 +304,18 @@ function Register() {
               <option value="Patient">Patient</option>
             </select>
 
+            {/* Submit button */}
             <button
               type="submit"
               className="btn form-btn"
-              disabled={loading ? true : false}
+              disabled={isUploading}
+              aria-label="Sign up"
             >
-              sign up
+              {isUploading ? "Uploading..." : "Sign Up"}
             </button>
           </form>
+          
+          {/* Login link */}
           <p>
             Already a user?{" "}
             <NavLink className="login-link" to={"/login"}>

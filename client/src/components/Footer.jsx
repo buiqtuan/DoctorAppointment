@@ -4,73 +4,81 @@ import { FaFacebookF, FaYoutube, FaInstagram } from "react-icons/fa";
 import { HashLink } from "react-router-hash-link";
 import { NavLink } from "react-router-dom";
 
+/**
+ * Footer - Application footer component with navigation links and social media icons
+ * 
+ * Displays:
+ * - Main site navigation links
+ * - Social media links
+ * - Copyright information
+ * 
+ * @returns {JSX.Element} - Rendered footer component
+ */
 const Footer = () => {
+  // Navigation links configuration for easy management and updates
+  const navLinks = [
+    { path: "/", label: "Home" },
+    { path: "/doctors", label: "Doctors" },
+    { path: "/appointments", label: "Appointments" },
+    { path: "/notifications", label: "Notifications" },
+    { path: "/#contact", label: "Contact Us", isHashLink: true },
+    { path: "/profile", label: "Profile" }
+  ];
+
+  // Social media links configuration
+  const socialLinks = [
+    { platform: "facebook", icon: <FaFacebookF />, url: "https://www.facebook.com/" },
+    { platform: "youtube", icon: <FaYoutube />, url: "https://www.youtube.com/" },
+    { platform: "instagram", icon: <FaInstagram />, url: "https://www.instagram.com/" }
+  ];
+
+  // Current year for copyright notice
+  const currentYear = new Date().getFullYear();
+
   return (
-    <>
-      <footer>
-        <div className="footer">
-          <div className="footer-links">
-            <h3>Links</h3>
-            <ul>
-              <li>
-                <NavLink to={"/"}>Home</NavLink>
+    <footer>
+      <div className="footer">
+        {/* Navigation links section */}
+        <div className="footer-links">
+          <h3>Links</h3>
+          <ul>
+            {navLinks.map((link) => (
+              <li key={link.path}>
+                {link.isHashLink ? (
+                  <HashLink to={link.path}>{link.label}</HashLink>
+                ) : (
+                  <NavLink to={link.path}>{link.label}</NavLink>
+                )}
               </li>
-              <li>
-                <NavLink to={"/doctors"}>Doctors</NavLink>
-              </li>
-              <li>
-                <NavLink to={"/appointments"}>Appointments</NavLink>
-              </li>
-              <li>
-                <NavLink to={"/notifications"}>Notifications</NavLink>
-              </li>
-              <li>
-                <HashLink to={"/#contact"}>Contact Us</HashLink>
-              </li>
-              <li>
-                <NavLink to={"/profile"}>Profile</NavLink>
-              </li>
-            </ul>
-          </div>
-          <div className="social">
-            <h3>Social links</h3>
-            <ul>
-              <li className="facebook">
-                <a
-                  href="https://www.facebook.com/"
-                  target={"_blank"}
-                  rel="noreferrer"
-                >
-                  <FaFacebookF />
-                </a>
-              </li>
-              <li className="youtube">
-                <a
-                  href="https://www.youtube.com/"
-                  target={"_blank"}
-                  rel="noreferrer"
-                >
-                  <FaYoutube />
-                </a>
-              </li>
-              <li className="instagram">
-                <a
-                  href="https://www.instagram.com/"
-                  target={"_blank"}
-                  rel="noreferrer"
-                >
-                  <FaInstagram />
-                </a>
-              </li>
-            </ul>
-          </div>
+            ))}
+          </ul>
         </div>
-        <div className="footer-bottom">
-          Copy Right
-          © {new Date().getFullYear()}
+
+        {/* Social media links section */}
+        <div className="social">
+          <h3>Social links</h3>
+          <ul>
+            {socialLinks.map((social) => (
+              <li key={social.platform} className={social.platform}>
+                <a
+                  href={social.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label={`Visit our ${social.platform} page`}
+                >
+                  {social.icon}
+                </a>
+              </li>
+            ))}
+          </ul>
         </div>
-      </footer>
-    </>
+      </div>
+
+      {/* Copyright section */}
+      <div className="footer-bottom">
+        Copyright &copy; {currentYear}
+      </div>
+    </footer>
   );
 };
 

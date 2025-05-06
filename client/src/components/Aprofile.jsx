@@ -8,13 +8,25 @@ import Loading from "./Loading";
 import fetchData from "../helper/apiCall";
 import jwt_decode from "jwt-decode";
 
+// Set base URL for all axios requests
 axios.defaults.baseURL = process.env.REACT_APP_SERVER_DOMAIN;
 
+/**
+ * Aprofile - Admin profile management component
+ * Allows administrators to view and update their profile information
+ */
 function Aprofile() {
+  // Get user ID from token
   const { userId } = jwt_decode(localStorage.getItem("token"));
+  
+  // Redux state and dispatch
   const dispatch = useDispatch();
   const { loading } = useSelector((state) => state.root);
+  
+  // State for profile picture
   const [file, setFile] = useState("");
+  
+  // Form state for user details
   const [formDetails, setFormDetails] = useState({
     firstname: "",
     lastname: "",
@@ -27,34 +39,54 @@ function Aprofile() {
     confpassword: "",
   });
 
+  /**
+   * Fetches user data from the API and updates form state
+   * Handles null values for optional fields
+   */
   const getUser = async () => {
     try {
       dispatch(setLoading(true));
-      const temp = await fetchData(`/user/getuser/${userId}`);
+      const userData = await fetchData(`/user/getuser/${userId}`);
+      
+      // Update form with user data, handling null values
       setFormDetails({
-        ...temp,
+        ...userData,
         password: "",
         confpassword: "",
-        mobile: temp.mobile === null ? "" : temp.mobile,
-        age: temp.age === null ? "" : temp.age,
+        mobile: userData.mobile === null ? "" : userData.mobile,
+        age: userData.age === null ? "" : userData.age,
       });
-      setFile(temp.pic);
+      
+      setFile(userData.pic);
+    } catch (error) {
+      toast.error("Failed to load profile data");
+      console.error("Error fetching user data:", error);
+    } finally {
       dispatch(setLoading(false));
-    } catch (error) {}
+    }
   };
 
+  // Fetch user data when component mounts
   useEffect(() => {
     getUser();
-  }, [dispatch]);
+  }, []);
 
+  /**
+   * Handles input changes for all form fields
+   * @param {Object} e - Event object
+   */
   const inputChange = (e) => {
     const { name, value } = e.target;
-    return setFormDetails({
+    setFormDetails({
       ...formDetails,
       [name]: value,
     });
   };
 
+  /**
+   * Validates form input and submits data to update profile
+   * @param {Object} e - Event object
+   */
   const formSubmit = async (e) => {
     try {
       e.preventDefault();
@@ -70,17 +102,20 @@ function Aprofile() {
         confpassword,
       } = formDetails;
 
+      // Validate form inputs
       if (!email) {
         return toast.error("Email should not be empty");
       } else if (firstname.length < 3) {
         return toast.error("First name must be at least 3 characters long");
       } else if (lastname.length < 3) {
         return toast.error("Last name must be at least 3 characters long");
-      } else if (password.length < 5) {
+      } else if (password && password.length < 5) {
         return toast.error("Password must be at least 5 characters long");
       } else if (password !== confpassword) {
         return toast.error("Passwords do not match");
       }
+      
+      // Submit form data with toast notification
       await toast.promise(
         axios.put(
           "/user/updateprofile",
@@ -104,129 +139,126 @@ function Aprofile() {
           pending: "Updating profile...",
           success: "Profile updated successfully",
           error: "Unable to update profile",
-          loading: "Updating profile...",
         }
       );
 
+      // Clear password fields after successful update
       setFormDetails({ ...formDetails, password: "", confpassword: "" });
     } catch (error) {
-      return toast.error("Unable to update profile");
+      console.error("Profile update error:", error);
+      toast.error("Unable to update profile");
     }
   };
 
+  /**
+   * Renders the profile form with current user data
+   * @returns {JSX.Element} Profile form
+   */
+  const renderProfileForm = () => (
+    <form onSubmit={formSubmit} className="register-form">
+      <div className="form-same-row">
+        <input
+          type="text"
+          name="firstname"
+          className="form-input"
+          placeholder="Enter your first name"
+          value={formDetails.firstname}
+          onChange={inputChange}
+        />
+        <input
+          type="text"
+          name="lastname"
+          className="form-input"
+          placeholder="Enter your last name"
+          value={formDetails.lastname}
+          onChange={inputChange}
+        />
+      </div>
+      <div className="form-same-row">
+        <input
+          type="email"
+          name="email"
+          className="form-input"
+          placeholder="Enter your email"
+          value={formDetails.email}
+          onChange={inputChange}
+        />
+        <select
+          name="gender"
+          value={formDetails.gender}
+          className="form-input"
+          id="gender"
+          onChange={inputChange}
+        >
+          <option value="neither">Prefer not to say</option>
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+        </select>
+      </div>
+      <div className="form-same-row">
+        <input
+          type="text"
+          name="age"
+          className="form-input"
+          placeholder="Enter your age"
+          value={formDetails.age}
+          onChange={inputChange}
+        />
+        <input
+          type="text"
+          name="mobile"
+          className="form-input"
+          placeholder="Enter your mobile number"
+          value={formDetails.mobile}
+          onChange={inputChange}
+        />
+      </div>
+      <textarea
+        type="text"
+        name="address"
+        className="form-input"
+        placeholder="Enter your address"
+        value={formDetails.address}
+        onChange={inputChange}
+        rows="2"
+      ></textarea>
+      <div className="form-same-row">
+        <input
+          type="password"
+          name="password"
+          className="form-input"
+          placeholder="Enter your password"
+          value={formDetails.password}
+          onChange={inputChange}
+        />
+        <input
+          type="password"
+          name="confpassword"
+          className="form-input"
+          placeholder="Confirm your password"
+          value={formDetails.confpassword}
+          onChange={inputChange}
+        />
+      </div>
+      <button type="submit" className="btn form-btn">
+        Update
+      </button>
+    </form>
+  );
+
   return (
     <>
-
       {loading ? (
         <Loading />
       ) : (
         <section className="register-section flex-center">
           <div className="profile-container flex-center">
             <h2 className="form-heading">Profile</h2>
-            <img
-              src={file}
-              alt="profile"
-              className="profile-pic"
-            />
-            <form
-              onSubmit={formSubmit}
-              className="register-form"
-            >
-              <div className="form-same-row">
-                <input
-                  type="text"
-                  name="firstname"
-                  className="form-input"
-                  placeholder="Enter your first name"
-                  value={formDetails.firstname}
-                  onChange={inputChange}
-                />
-                <input
-                  type="text"
-                  name="lastname"
-                  className="form-input"
-                  placeholder="Enter your last name"
-                  value={formDetails.lastname}
-                  onChange={inputChange}
-                />
-              </div>
-              <div className="form-same-row">
-                <input
-                  type="email"
-                  name="email"
-                  className="form-input"
-                  placeholder="Enter your email"
-                  value={formDetails.email}
-                  onChange={inputChange}
-                />
-                <select
-                  name="gender"
-                  value={formDetails.gender}
-                  className="form-input"
-                  id="gender"
-                  onChange={inputChange}
-                >
-                  <option value="neither">Prefer not to say</option>
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
-                </select>
-              </div>
-              <div className="form-same-row">
-                <input
-                  type="text"
-                  name="age"
-                  className="form-input"
-                  placeholder="Enter your age"
-                  value={formDetails.age}
-                  onChange={inputChange}
-                />
-                <input
-                  type="text"
-                  name="mobile"
-                  className="form-input"
-                  placeholder="Enter your mobile number"
-                  value={formDetails?.mobile}
-                  onChange={inputChange}
-                />
-              </div>
-              <textarea
-                type="text"
-                name="address"
-                className="form-input"
-                placeholder="Enter your address"
-                value={formDetails.address}
-                onChange={inputChange}
-                rows="2"
-              ></textarea>
-              <div className="form-same-row">
-                <input
-                  type="password"
-                  name="password"
-                  className="form-input"
-                  placeholder="Enter your password"
-                  value={formDetails.password}
-                  onChange={inputChange}
-                />
-                <input
-                  type="password"
-                  name="confpassword"
-                  className="form-input"
-                  placeholder="Confirm your password"
-                  value={formDetails.confpassword}
-                  onChange={inputChange}
-                />
-              </div>
-              <button
-                type="submit"
-                className="btn form-btn"
-              >
-                update
-              </button>
-            </form>
+            <img src={file} alt="profile" className="profile-pic" />
+            {renderProfileForm()}
           </div>
         </section>
       )}
-
     </>
   );
 }

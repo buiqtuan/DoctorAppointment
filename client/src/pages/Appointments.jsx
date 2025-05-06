@@ -1,53 +1,93 @@
+/**
+ * Appointments Page Component
+ * 
+ * This component displays a user's appointments with pagination,
+ * allowing them to view and manage their medical appointments.
+ * Doctors can mark appointments as completed.
+ */
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import Empty from "../components/Empty";
-import Footer from "../components/Footer";
-import Navbar from "../components/Navbar";
-import fetchData from "../helper/apiCall";
-import { setLoading } from "../redux/reducers/rootSlice";
-import Loading from "../components/Loading";
+import axios from "axios";
 import { toast } from "react-hot-toast";
 import jwt_decode from "jwt-decode";
-import axios from "axios";
+
+// Components
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
+import Loading from "../components/Loading";
+import Empty from "../components/Empty";
+
+// Redux and API
+import { setLoading } from "../redux/reducers/rootSlice";
+import fetchData from "../helper/apiCall";
+
+// Styles
 import "../styles/user.css";
 
 const Appointments = () => {
+  // State management
   const [appointments, setAppointments] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const PerPage = 5;
+  
+  // Constants
+  const ITEMS_PER_PAGE = 5;
+  
+  // Redux
   const dispatch = useDispatch();
   const { loading } = useSelector((state) => state.root);
+  
+  // Get user ID from JWT token
   const { userId } = jwt_decode(localStorage.getItem("token"));
 
-  const getAllAppoint = async () => {
+  /**
+   * Fetches all appointments for the current user
+   */
+  const fetchAppointments = async () => {
     try {
       dispatch(setLoading(true));
-      const temp = await fetchData(
+      const result = await fetchData(
         `/appointment/getallappointments?search=${userId}`
       );
-      setAppointments(temp);
-      dispatch(setLoading(false));
+      setAppointments(result);
     } catch (error) {
       console.error("Error fetching appointments:", error);
       toast.error("Failed to fetch appointments. Please try again.");
+    } finally {
+      dispatch(setLoading(false));
     }
   };
 
+  // Load appointments when component mounts
   useEffect(() => {
-    getAllAppoint();
+    fetchAppointments();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const totalPages = Math.ceil(appointments.length / PerPage);
+  // Calculate total pages for pagination
+  const totalPages = Math.ceil(appointments.length / ITEMS_PER_PAGE);
 
+  /**
+   * Handles page change in pagination
+   * @param {number} page - Page number to navigate to
+   */
   const handlePageChange = (page) => {
     setCurrentPage(page);
   };
 
+  /**
+   * Renders pagination buttons
+   * @returns {Array} Array of pagination button elements
+   */
   const renderPagination = () => {
     const pages = [];
     for (let i = 1; i <= totalPages; i++) {
       pages.push(
-        <button key={i} onClick={() => handlePageChange(i)}>
+        <button 
+          key={i} 
+          onClick={() => handlePageChange(i)}
+          className={currentPage === i ? "active" : ""}
+          aria-label={`Page ${i}`}
+        >
           {i}
         </button>
       );
@@ -55,13 +95,19 @@ const Appointments = () => {
     return pages;
   };
 
+  // Get appointments for current page
   const paginatedAppointments = appointments.slice(
-    (currentPage - 1) * PerPage,
-    currentPage * PerPage
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
   );
 
+  /**
+   * Marks an appointment as completed
+   * @param {Object} appointment - The appointment to mark as completed
+   */
   const completeAppointment = async (appointment) => {
     try {
+      dispatch(setLoading(true));
       await axios.put(
         "/appointment/completed",
         {
@@ -76,73 +122,109 @@ const Appointments = () => {
         }
       );
       toast.success("Appointment completed successfully.");
-      getAllAppoint();
+      fetchAppointments();
     } catch (error) {
       console.error("Error completing appointment:", error);
       toast.error("Failed to complete appointment. Please try again.");
+    } finally {
+      dispatch(setLoading(false));
     }
   };
 
   return (
     <>
       <Navbar />
-      {loading ? (
-        <Loading />
-      ) : (
-        <section className="container notif-section">
-          <h2 className="page-heading">Your Appointments</h2>
+      <main className="container appointment-page">
+        {loading ? (
+          <Loading />
+        ) : (
+          <section className="container notif-section">
+            <h2 className="page-heading">Your Appointments</h2>
 
-          {appointments.length > 0 ? (
-            <div className="appointments">
-              <table>
-                <thead>
-                  <tr>
-                    <th>S.No</th>
-                    <th>Doctor</th>
-                    <th>P Name</th>
-                    <th>P Age</th>
-                    <th>P Gender</th>
-                    <th>P Mobile No.</th>
-                    <th>P bloodGroup</th>
-                    <th>P Family Diseases</th>
-                    <th>Appointment Date</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedAppointments.map((appointment, index) => (
-                    <tr key={appointment._id}>
-                      <td>{(currentPage - 1) * PerPage + index + 1}</td>
-                      <td>{`${appointment.doctorId.firstname} ${appointment.doctorId.lastname}`}</td>
-                      <td>{`${appointment.userId.firstname} ${appointment.userId.lastname}`}</td>
-                      <td>{appointment.age}</td> 
-                      <td>{appointment.gender}</td>
-                      <td>{appointment.number}</td>
-                      <td>{appointment.bloodGroup}</td>
-                      <td>{appointment.familyDiseases}</td>
-                      <td>{appointment.date}</td>
-                      <td>{appointment.status}</td>
-                      <td>
-                        <button
-                          className="btn user-btn complete-btn"
-                          onClick={() => completeAppointment(appointment)}
-                          disabled={appointment.status === "Completed"}
-                        >
-                          Complete
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <div className="pagination">{renderPagination()}</div>
-            </div>
-          ) : (
-            <Empty message="No appointments found." />
-          )}
-        </section>
-      )}
+            {appointments.length > 0 ? (
+              <div className="appointments">
+                <div className="table-responsive">
+                  <table className="appointment-table">
+                    <thead>
+                      <tr>
+                        <th scope="col">S.No</th>
+                        <th scope="col">Doctor</th>
+                        <th scope="col">Patient Name</th>
+                        <th scope="col">Age</th>
+                        <th scope="col">Gender</th>
+                        <th scope="col">Mobile</th>
+                        <th scope="col">Blood Group</th>
+                        <th scope="col">Family Medical History</th>
+                        <th scope="col">Date</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {paginatedAppointments.map((appointment, index) => (
+                        <tr key={appointment._id}>
+                          <td>{(currentPage - 1) * ITEMS_PER_PAGE + index + 1}</td>
+                          <td className="doctor-name">
+                            {`${appointment.doctorId.firstname} ${appointment.doctorId.lastname}`}
+                          </td>
+                          <td>
+                            {`${appointment.userId.firstname} ${appointment.userId.lastname}`}
+                          </td>
+                          <td>{appointment.age}</td> 
+                          <td>{appointment.gender}</td>
+                          <td>{appointment.number}</td>
+                          <td>{appointment.bloodGroup || 'N/A'}</td>
+                          <td className="family-diseases">
+                            {appointment.familyDiseases || 'None'}
+                          </td>
+                          <td>{new Date(appointment.date).toLocaleDateString()}</td>
+                          <td className={`status ${appointment.status.toLowerCase()}`}>
+                            {appointment.status}
+                          </td>
+                          <td>
+                            <button
+                              className="btn user-btn complete-btn"
+                              onClick={() => completeAppointment(appointment)}
+                              disabled={appointment.status === "Completed"}
+                              aria-label="Mark appointment as completed"
+                            >
+                              {appointment.status === "Completed" ? "Completed" : "Complete"}
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                
+                {totalPages > 1 && (
+                  <div className="pagination" role="navigation" aria-label="Pagination">
+                    <button 
+                      onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                      disabled={currentPage === 1}
+                      aria-label="Previous page"
+                    >
+                      &laquo; Prev
+                    </button>
+                    
+                    {renderPagination()}
+                    
+                    <button 
+                      onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                      disabled={currentPage === totalPages}
+                      aria-label="Next page"
+                    >
+                      Next &raquo;
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Empty message="No appointments found. Schedule an appointment with a doctor." />
+            )}
+          </section>
+        )}
+      </main>
       <Footer />
     </>
   );

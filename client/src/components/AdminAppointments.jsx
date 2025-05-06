@@ -8,35 +8,57 @@ import Empty from "./Empty";
 import fetchData from "../helper/apiCall";
 import "../styles/user.css";
 
+// Set base URL for all axios requests
 axios.defaults.baseURL = process.env.REACT_APP_SERVER_DOMAIN;
 
+/**
+ * AdminAppointments - Component for admin to view and manage all appointments
+ * Shows appointments in a table with options to mark them as completed
+ */
 const AdminAppointments = () => {
+  // State for storing all appointments
   const [appointments, setAppointments] = useState([]);
+  
+  // Redux state and dispatch
   const dispatch = useDispatch();
   const { loading } = useSelector((state) => state.root);
 
-  const getAllAppoint = async (e) => {
+  /**
+   * Fetches all appointments from the API
+   * Updates the appointments state with the response
+   */
+  const fetchAllAppointments = async () => {
     try {
       dispatch(setLoading(true));
-      const temp = await fetchData(`/appointment/getallappointments`);
-      setAppointments(temp);
+      const appointmentsData = await fetchData("/appointment/getallappointments");
+      setAppointments(appointmentsData);
+    } catch (error) {
+      toast.error("Failed to fetch appointments");
+      console.error("Error fetching appointments:", error);
+    } finally {
       dispatch(setLoading(false));
-    } catch (error) {}
+    }
   };
 
+  // Fetch appointments when component mounts
   useEffect(() => {
-    getAllAppoint();
+    fetchAllAppointments();
   }, []);
 
-  const complete = async (ele) => {
+  /**
+   * Marks an appointment as completed
+   * @param {Object} appointment - The appointment to mark as completed
+   */
+  const markAppointmentComplete = async (appointment) => {
     try {
+      // Show toast notification with promise for better UX
       await toast.promise(
         axios.put(
           "/appointment/completed",
           {
-            appointid: ele?._id,
-            doctorId: ele?.doctorId._id,
-            doctorname: `${ele?.userId?.firstname} ${ele?.userId?.lastname}`,
+            appointid: appointment?._id,
+            doctorId: appointment?.doctorId._id,
+            doctorname: `${appointment?.userId?.firstname} ${appointment?.userId?.lastname}`,
           },
           {
             headers: {
@@ -45,17 +67,57 @@ const AdminAppointments = () => {
           }
         ),
         {
-          success: "Appointment booked successfully",
-          error: "Unable to book appointment",
-          loading: "Booking appointment...",
+          success: "Appointment marked as completed",
+          error: "Unable to update appointment status",
+          loading: "Updating appointment status...",
         }
       );
 
-      getAllAppoint();
+      // Refresh appointment list after updating
+      fetchAllAppointments();
     } catch (error) {
-      return error;
+      console.error("Error completing appointment:", error);
     }
   };
+
+  /**
+   * Renders a table row for each appointment
+   * @param {Object} appointment - The appointment data
+   * @param {number} index - The index of the appointment in the array
+   * @returns {JSX.Element} - The table row for the appointment
+   */
+  const renderAppointmentRow = (appointment, index) => (
+    <tr key={appointment?._id}>
+      <td>{index + 1}</td>
+      <td>
+        {appointment?.doctorId?.firstname + " " + appointment?.doctorId?.lastname}
+      </td>
+      <td>
+        {appointment?.userId?.firstname + " " + appointment?.userId?.lastname}
+      </td>
+      <td>{appointment?.age}</td>
+      <td>{appointment?.gender}</td>
+      <td>{appointment?.number}</td>
+      <td>{appointment?.bloodGroup}</td>
+      <td>{appointment?.familyDiseases}</td>
+      <td>{appointment?.date}</td>
+      <td>{appointment?.time}</td>
+      <td>{appointment?.createdAt.split("T")[0]}</td>
+      <td>{appointment?.updatedAt.split("T")[1].split(".")[0]}</td>
+      <td>{appointment?.status}</td>
+      <td>
+        <button
+          className={`btn user-btn accept-btn ${
+            appointment?.status === "Completed" ? "disable-btn" : ""
+          }`}
+          disabled={appointment?.status === "Completed"}
+          onClick={() => markAppointmentComplete(appointment)}
+        >
+          Complete
+        </button>
+      </td>
+    </tr>
+  );
 
   return (
     <>
@@ -82,47 +144,11 @@ const AdminAppointments = () => {
                     <th>Booking Date</th>
                     <th>Booking Time</th>
                     <th>Status</th>
-
                     <th>Action</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {appointments?.map((ele, i) => {
-                    return (
-                      <tr key={ele?._id}>
-                        <td>{i + 1}</td>
-                        <td>
-                          {ele?.doctorId?.firstname +
-                            " " +
-                            ele?.doctorId?.lastname}
-                        </td>
-                        <td>
-                          {ele?.userId?.firstname + " " + ele?.userId?.lastname}
-                        </td>
-                        <td>{ele?.age}</td>
-                        <td>{ele?.gender}</td>
-                        <td>{ele?.number}</td>
-                        <td>{ele?.bloodGroup}</td>
-                        <td>{ele?.familyDiseases}</td>
-                        <td>{ele?.date}</td>
-                        <td>{ele?.time}</td>
-                        <td>{ele?.createdAt.split("T")[0]}</td>
-                        <td>{ele?.updatedAt.split("T")[1].split(".")[0]}</td>
-                        <td>{ele?.status}</td>
-                        <td>
-                          <button
-                            className={`btn user-btn accept-btn ${
-                              ele?.status === "Completed" ? "disable-btn" : ""
-                            }`}
-                            disabled={ele?.status === "Completed"}
-                            onClick={() => complete(ele)}
-                          >
-                            Complete
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
+                  {appointments?.map(renderAppointmentRow)}
                 </tbody>
               </table>
             </div>

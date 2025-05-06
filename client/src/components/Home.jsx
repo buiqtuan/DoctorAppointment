@@ -11,60 +11,71 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import {
-  FaHome,
-  FaList,
-  FaUser,
-  FaUserMd,
-  FaUsers,
-  FaEnvelope,
-} from "react-icons/fa";
+import { FaUsers, FaUserMd } from "react-icons/fa";
+import { BsFillGrid3X3GapFill } from "react-icons/bs";
 import Loading from "./Loading";
 import { setLoading } from "../redux/reducers/rootSlice";
 import { useDispatch, useSelector } from "react-redux";
 import fetchData from "../helper/apiCall";
 import axios from "axios";
 import "../styles/Home.css";
-import {
-  BsFillArchiveFill,
-  BsFillGrid3X3GapFill,
-  BsPeopleFill,
-} from "react-icons/bs";
 
+// Set the base URL for all axios requests
 axios.defaults.baseURL = process.env.REACT_APP_SERVER_DOMAIN;
 
+/**
+ * Home component serves as the dashboard of the application
+ * Displays statistics about users, appointments, and doctors
+ */
 const Home = () => {
-  const [userCount, setUserCount] = useState(0);
-  const [appointmentCount, setAppointmentCount] = useState(0);
-  const [doctorCount, setDoctorCount] = useState(0);
+  // State variables to store count data
+  const [stats, setStats] = useState({
+    userCount: 0,
+    appointmentCount: 0,
+    doctorCount: 0
+  });
+  
   const dispatch = useDispatch();
   const { loading } = useSelector((state) => state.root);
 
+  /**
+   * Fetches count data from the API endpoints
+   * Updates the state with the retrieved counts
+   */
   const fetchDataCounts = async () => {
     try {
       dispatch(setLoading(true));
-      const userData = await fetchData("/user/getallusers");
-      const appointmentData = await fetchData(
-        "/appointment/getallappointments"
-      );
-      const doctorData = await fetchData("/doctor/getalldoctors");
-      setUserCount(userData.length);
-      setAppointmentCount(appointmentData.length);
-      setDoctorCount(doctorData.length);
+      
+      // Fetch data in parallel for better performance
+      const [userData, appointmentData, doctorData] = await Promise.all([
+        fetchData("/user/getallusers"),
+        fetchData("/appointment/getallappointments"),
+        fetchData("/doctor/getalldoctors")
+      ]);
+      
+      setStats({
+        userCount: userData.length,
+        appointmentCount: appointmentData.length,
+        doctorCount: doctorData.length
+      });
+      
       dispatch(setLoading(false));
     } catch (error) {
       console.error("Error fetching data counts:", error);
+      dispatch(setLoading(false));
     }
   };
 
+  // Fetch data on component mount
   useEffect(() => {
     fetchDataCounts();
   }, []);
 
-  const data = [
-    { name: "User Count", count: userCount },
-    { name: "Appointment Count", count: appointmentCount },
-    { name: "Doctor Count", count: doctorCount },
+  // Format data for charts
+  const chartData = [
+    { name: "Users", count: stats.userCount },
+    { name: "Appointments", count: stats.appointmentCount },
+    { name: "Doctors", count: stats.doctorCount },
   ];
 
   return (
@@ -74,33 +85,43 @@ const Home = () => {
       ) : (
         <section className="user-section">
           <div>
-            <h1>Welcome To Dashboard!!!</h1>
+            <h1>Welcome To Dashboard!</h1>
+            
+            {/* Dashboard Cards */}
             <div className="main-cards">
+              {/* Users Card */}
               <div className="card">
                 <div className="card-inner">
                   <h3 style={{ color: "white" }}>USERS</h3>
                   <FaUsers />
                 </div>
-                <h2 style={{ color: "white" }}>{userCount}</h2>
+                <h2 style={{ color: "white" }}>{stats.userCount}</h2>
               </div>
+              
+              {/* Appointments Card */}
               <div className="card">
                 <div className="card-inner">
                   <h3 style={{ color: "white" }}>APPOINTMENTS</h3>
                   <BsFillGrid3X3GapFill className="card_icon" />
                 </div>
-                <h2 style={{ color: "white" }}>{appointmentCount}</h2>
+                <h2 style={{ color: "white" }}>{stats.appointmentCount}</h2>
               </div>
+              
+              {/* Doctors Card */}
               <div className="card">
                 <div className="card-inner">
                   <h3 style={{ color: "white" }}>DOCTORS</h3>
                   <FaUserMd />
                 </div>
-                <h2 style={{ color: "white" }}>{doctorCount}</h2>
+                <h2 style={{ color: "white" }}>{stats.doctorCount}</h2>
               </div>
             </div>
+            
+            {/* Chart Section */}
             <div className="charts">
+              {/* Bar Chart */}
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={data}>
+                <BarChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
                   <YAxis />
@@ -109,8 +130,10 @@ const Home = () => {
                   <Bar dataKey="count" fill="#8884d8" />
                 </BarChart>
               </ResponsiveContainer>
+              
+              {/* Line Chart */}
               <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={data}>
+                <LineChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
                   <YAxis />

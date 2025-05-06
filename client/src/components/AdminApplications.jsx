@@ -8,81 +8,114 @@ import Empty from "./Empty";
 import fetchData from "../helper/apiCall";
 import "../styles/user.css";
 
+// Configure axios base URL from environment variables
 axios.defaults.baseURL = process.env.REACT_APP_SERVER_DOMAIN;
 
+/**
+ * AdminApplications Component
+ * 
+ * Displays and manages doctor applications for admin approval.
+ * Allows administrators to view, accept, or reject pending doctor applications.
+ * 
+ * @returns {JSX.Element} The rendered AdminApplications component
+ */
 const AdminApplications = () => {
+  // State to store doctor applications
   const [applications, setApplications] = useState([]);
+  
+  // Redux state and dispatch
   const dispatch = useDispatch();
   const { loading } = useSelector((state) => state.root);
 
-  const getAllApp = async (e) => {
+  /**
+   * Fetches all pending doctor applications from the server
+   */
+  const fetchApplications = async () => {
     try {
       dispatch(setLoading(true));
-      const temp = await fetchData(`/doctor/getnotdoctors`);
-      setApplications(temp);
+      const result = await fetchData(`/doctor/getnotdoctors`);
+      setApplications(result);
+    } catch (error) {
+      toast.error("Failed to load applications");
+      console.error("Error fetching applications:", error);
+    } finally {
       dispatch(setLoading(false));
-    } catch (error) {}
+    }
   };
 
+  /**
+   * Approves a doctor application
+   * @param {string} userId - ID of the user to approve as doctor
+   */
   const acceptUser = async (userId) => {
     try {
       const confirm = window.confirm("Are you sure you want to accept?");
-      if (confirm) {
-        await toast.promise(
-          axios.put(
-            "/doctor/acceptdoctor",
-            { id: userId },
-            {
-              headers: {
-                authorization: `Bearer ${localStorage.getItem("token")}`,
-              },
-              data: { userId },
-            }
-          ),
+      if (!confirm) return;
+      
+      await toast.promise(
+        axios.put(
+          "/doctor/acceptdoctor",
+          { id: userId },
           {
-            success: "Application accepted",
-            error: "Unable to accept application",
-            loading: "Accepting application...",
+            headers: {
+              authorization: `Bearer ${localStorage.getItem("token")}`,
+            }
           }
-        );
-        getAllApp();
-      }
+        ),
+        {
+          success: "Application accepted",
+          error: "Unable to accept application",
+          loading: "Accepting application...",
+        }
+      );
+      
+      // Refresh the applications list
+      fetchApplications();
     } catch (error) {
-      return error;
+      console.error("Error accepting application:", error);
     }
   };
 
-  const deleteUser = async (userId) => {
+  /**
+   * Rejects a doctor application
+   * @param {string} userId - ID of the user to reject
+   */
+  const rejectUser = async (userId) => {
     try {
-      const confirm = window.confirm("Are you sure you want to delete?");
-      if (confirm) {
-        await toast.promise(
-          axios.put(
-            "/doctor/rejectdoctor",
-            { id: userId },
-            {
-              headers: {
-                authorization: `Bearer ${localStorage.getItem("token")}`,
-              },
-              data: { userId },
-            }
-          ),
+      const confirm = window.confirm("Are you sure you want to reject?");
+      if (!confirm) return;
+      
+      await toast.promise(
+        axios.put(
+          "/doctor/rejectdoctor",
+          { id: userId },
           {
-            success: "Application rejected",
-            error: "Unable to reject application",
-            loading: "Rejecting application...",
+            headers: {
+              authorization: `Bearer ${localStorage.getItem("token")}`,
+            }
           }
-        );
-        getAllApp();
-      }
+        ),
+        {
+          success: "Application rejected",
+          error: "Unable to reject application",
+          loading: "Rejecting application...",
+        }
+      );
+      
+      // Refresh the applications list
+      fetchApplications();
     } catch (error) {
-      return error;
+      console.error("Error rejecting application:", error);
     }
   };
 
+  // Fetch applications when component mounts
   useEffect(() => {
-    getAllApp();
+    fetchApplications();
   }, []);
+
+  // Default profile image fallback
+  const defaultProfileImage = "https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg";
 
   return (
     <>
@@ -91,6 +124,7 @@ const AdminApplications = () => {
       ) : (
         <section className="user-section">
           <h3 className="home-sub-heading">All Applications</h3>
+          
           {applications.length > 0 ? (
             <div className="user-container">
               <table>
@@ -109,41 +143,39 @@ const AdminApplications = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {applications?.map((ele, i) => {
+                  {applications.map((application, index) => {
+                    const user = application?.userId || {};
+                    
                     return (
-                      <tr key={ele?._id}>
-                        <td>{i + 1}</td>
+                      <tr key={application?._id || index}>
+                        <td>{index + 1}</td>
                         <td>
                           <img
                             className="user-table-pic"
-                            src={
-                              ele?.userId?.pic ||
-                              "https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg"
-                            }
-                            alt={ele?.userId?.firstname}
+                            src={user?.pic || defaultProfileImage}
+                            alt={`${user?.firstname || 'Doctor'}'s profile`}
+                            loading="lazy"
                           />
                         </td>
-                        <td>{ele?.userId?.firstname}</td>
-                        <td>{ele?.userId?.lastname}</td>
-                        <td>{ele?.userId?.email}</td>
-                        <td>{ele?.userId?.mobile}</td>
-                        <td>{ele?.experience}</td>
-                        <td>{ele?.specialization}</td>
-                        <td>{ele?.fees}</td>
+                        <td>{user?.firstname}</td>
+                        <td>{user?.lastname}</td>
+                        <td>{user?.email}</td>
+                        <td>{user?.mobile}</td>
+                        <td>{application?.experience}</td>
+                        <td>{application?.specialization}</td>
+                        <td>{application?.fees}</td>
                         <td className="select">
                           <button
                             className="btn user-btn accept-btn"
-                            onClick={() => {
-                              acceptUser(ele?.userId?._id);
-                            }}
+                            onClick={() => acceptUser(user?._id)}
+                            aria-label={`Accept ${user?.firstname}'s application`}
                           >
                             Accept
                           </button>
                           <button
                             className="btn user-btn"
-                            onClick={() => {
-                              deleteUser(ele?.userId?._id);
-                            }}
+                            onClick={() => rejectUser(user?._id)}
+                            aria-label={`Reject ${user?.firstname}'s application`}
                           >
                             Reject
                           </button>

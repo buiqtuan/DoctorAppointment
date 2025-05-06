@@ -1,3 +1,4 @@
+/* Import global styles from app.css */
 @import url(app.css);
 
 .modal {

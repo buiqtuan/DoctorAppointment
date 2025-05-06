@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import "../styles/profile.css";
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
@@ -10,13 +10,27 @@ import Loading from "../components/Loading";
 import fetchData from "../helper/apiCall";
 import jwt_decode from "jwt-decode";
 
+// Set the base URL for all axios requests
 axios.defaults.baseURL = process.env.REACT_APP_SERVER_DOMAIN;
 
+/**
+ * Profile Component
+ * 
+ * Allows users to view and update their profile information.
+ * Includes form validation and secure profile updates.
+ */
 function Profile() {
-  const { userId } = jwt_decode(localStorage.getItem("token"));
+  // Get user ID from JWT token
+  const { userId } = jwt_decode(localStorage.getItem("token") || "");
+  
+  // Redux hooks
   const dispatch = useDispatch();
   const { loading } = useSelector((state) => state.root);
+  
+  // State for profile picture
   const [file, setFile] = useState("");
+  
+  // State for form fields
   const [formDetails, setFormDetails] = useState({
     firstname: "",
     lastname: "",
@@ -29,37 +43,99 @@ function Profile() {
     confpassword: "",
   });
 
-  const getUser = async () => {
+  /**
+   * Fetches user data from the server
+   * Updates the form with current user information
+   */
+  const getUser = useCallback(async () => {
     try {
       dispatch(setLoading(true));
-      const temp = await fetchData(`/user/getuser/${userId}`);
+      
+      // Fetch user data
+      const userData = await fetchData(`/user/getuser/${userId}`);
+      
+      // Update form with user data, handling null values
       setFormDetails({
-        ...temp,
+        ...userData,
         password: "",
         confpassword: "",
-        mobile: temp.mobile === null ? "" : temp.mobile,
-        age: temp.age === null ? "" : temp.age,
+        mobile: userData.mobile === null ? "" : userData.mobile,
+        age: userData.age === null ? "" : userData.age,
       });
-      setFile(temp.pic);
+      
+      // Set profile picture
+      setFile(userData.pic);
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+      toast.error("Failed to load profile information");
+    } finally {
       dispatch(setLoading(false));
-    } catch (error) {}
-  };
+    }
+  }, [dispatch, userId]);
 
+  // Fetch user data on component mount
   useEffect(() => {
     getUser();
-  }, [dispatch]);
+  }, [getUser]);
 
-  const inputChange = (e) => {
+  /**
+   * Handles input field changes
+   * @param {Event} e - The input change event
+   */
+  const handleInputChange = (e) => {
     const { name, value } = e.target;
-    return setFormDetails({
+    setFormDetails({
       ...formDetails,
       [name]: value,
     });
   };
 
-  const formSubmit = async (e) => {
+  /**
+   * Validates form data before submission
+   * @returns {boolean} Whether the form data is valid
+   */
+  const validateForm = () => {
+    const { firstname, lastname, email, password, confpassword } = formDetails;
+    
+    if (!email) {
+      toast.error("Email should not be empty");
+      return false;
+    }
+    
+    if (firstname.length < 3) {
+      toast.error("First name must be at least 3 characters long");
+      return false;
+    }
+    
+    if (lastname.length < 3) {
+      toast.error("Last name must be at least 3 characters long");
+      return false;
+    }
+    
+    if (password && password.length < 5) {
+      toast.error("Password must be at least 5 characters long");
+      return false;
+    }
+    
+    if (password !== confpassword) {
+      toast.error("Passwords do not match");
+      return false;
+    }
+    
+    return true;
+  };
+
+  /**
+   * Handles form submission to update profile
+   * @param {Event} e - The form submission event
+   */
+  const handleFormSubmit = async (e) => {
+    e.preventDefault();
+    
+    // Validate form before proceeding
+    if (!validateForm()) return;
+    
     try {
-      e.preventDefault();
       const {
         firstname,
         lastname,
@@ -69,20 +145,9 @@ function Profile() {
         address,
         gender,
         password,
-        confpassword,
       } = formDetails;
 
-      if (!email) {
-        return toast.error("Email should not be empty");
-      } else if (firstname.length < 3) {
-        return toast.error("First name must be at least 3 characters long");
-      } else if (lastname.length < 3) {
-        return toast.error("Last name must be at least 3 characters long");
-      } else if (password.length < 5) {
-        return toast.error("Password must be at least 5 characters long");
-      } else if (password !== confpassword) {
-        return toast.error("Passwords do not match");
-      }
+      // Send update request with toast notifications
       await toast.promise(
         axios.put(
           "/user/updateprofile",
@@ -106,34 +171,44 @@ function Profile() {
           pending: "Updating profile...",
           success: "Profile updated successfully",
           error: "Unable to update profile",
-          loading: "Updating profile...",
         }
       );
 
-      setFormDetails({ ...formDetails, password: "", confpassword: "" });
+      // Clear sensitive fields after successful update
+      setFormDetails({ 
+        ...formDetails, 
+        password: "", 
+        confpassword: "" 
+      });
     } catch (error) {
-      return toast.error("Unable to update profile");
+      console.error("Profile update error:", error);
+      toast.error("Unable to update profile");
     }
   };
 
   return (
     <>
-    <Navbar />
+      <Navbar />
       {loading ? (
         <Loading />
       ) : (
         <section className="register-section flex-center">
           <div className="profile-container flex-center">
             <h2 className="form-heading">Profile</h2>
+            
+            {/* Profile Picture */}
             <img
               src={file}
-              alt="profile"
+              alt="Profile"
               className="profile-pic"
             />
+            
+            {/* Profile Form */}
             <form
-              onSubmit={formSubmit}
+              onSubmit={handleFormSubmit}
               className="register-form"
             >
+              {/* Name Fields */}
               <div className="form-same-row">
                 <input
                   type="text"
@@ -141,7 +216,8 @@ function Profile() {
                   className="form-input"
                   placeholder="Enter your first name"
                   value={formDetails.firstname}
-                  onChange={inputChange}
+                  onChange={handleInputChange}
+                  aria-label="First name"
                 />
                 <input
                   type="text"
@@ -149,9 +225,12 @@ function Profile() {
                   className="form-input"
                   placeholder="Enter your last name"
                   value={formDetails.lastname}
-                  onChange={inputChange}
+                  onChange={handleInputChange}
+                  aria-label="Last name"
                 />
               </div>
+              
+              {/* Email and Gender Fields */}
               <div className="form-same-row">
                 <input
                   type="email"
@@ -159,20 +238,24 @@ function Profile() {
                   className="form-input"
                   placeholder="Enter your email"
                   value={formDetails.email}
-                  onChange={inputChange}
+                  onChange={handleInputChange}
+                  aria-label="Email address"
                 />
                 <select
                   name="gender"
                   value={formDetails.gender}
                   className="form-input"
                   id="gender"
-                  onChange={inputChange}
+                  onChange={handleInputChange}
+                  aria-label="Gender"
                 >
                   <option value="neither">Prefer not to say</option>
                   <option value="male">Male</option>
                   <option value="female">Female</option>
                 </select>
               </div>
+              
+              {/* Age and Mobile Fields */}
               <div className="form-same-row">
                 <input
                   type="text"
@@ -180,26 +263,32 @@ function Profile() {
                   className="form-input"
                   placeholder="Enter your age"
                   value={formDetails.age}
-                  onChange={inputChange}
+                  onChange={handleInputChange}
+                  aria-label="Age"
                 />
                 <input
                   type="text"
                   name="mobile"
                   className="form-input"
                   placeholder="Enter your mobile number"
-                  value={formDetails?.mobile}
-                  onChange={inputChange}
+                  value={formDetails.mobile}
+                  onChange={handleInputChange}
+                  aria-label="Mobile number"
                 />
               </div>
+              
+              {/* Address Field */}
               <textarea
-                type="text"
                 name="address"
                 className="form-input"
                 placeholder="Enter your address"
                 value={formDetails.address}
-                onChange={inputChange}
+                onChange={handleInputChange}
                 rows="2"
+                aria-label="Address"
               ></textarea>
+              
+              {/* Password Fields */}
               <div className="form-same-row">
                 <input
                   type="password"
@@ -207,7 +296,8 @@ function Profile() {
                   className="form-input"
                   placeholder="Enter your password"
                   value={formDetails.password}
-                  onChange={inputChange}
+                  onChange={handleInputChange}
+                  aria-label="Password"
                 />
                 <input
                   type="password"
@@ -215,14 +305,18 @@ function Profile() {
                   className="form-input"
                   placeholder="Confirm your password"
                   value={formDetails.confpassword}
-                  onChange={inputChange}
+                  onChange={handleInputChange}
+                  aria-label="Confirm password"
                 />
               </div>
+              
+              {/* Submit Button */}
               <button
                 type="submit"
                 className="btn form-btn"
+                aria-label="Update profile"
               >
-                update
+                Update Profile
               </button>
             </form>
           </div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import Loading from "./Loading";
@@ -7,18 +7,33 @@ import { useDispatch, useSelector } from "react-redux";
 import Empty from "./Empty";
 import fetchData from "../helper/apiCall";
 
+// Set the base URL for all axios requests
 axios.defaults.baseURL = process.env.REACT_APP_SERVER_DOMAIN;
 
+/**
+ * Users component for admin dashboard
+ * Displays a list of all users with search and filter functionality
+ * Allows administrators to delete users
+ */
 const Users = () => {
+  // State management
   const [users, setUsers] = useState([]);
-  const dispatch = useDispatch();
   const [filter, setFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
+  
+  // Redux hooks
+  const dispatch = useDispatch();
   const { loading } = useSelector((state) => state.root);
 
-  const getAllUsers = async () => {
+  /**
+   * Fetches all users from the API with optional filtering and search
+   * Updates the users state with the retrieved data
+   */
+  const getAllUsers = useCallback(async () => {
     try {
       dispatch(setLoading(true));
+      
+      // Build query URL with filter and search params if provided
       let url = "/user/getallusers";
       if (filter !== "all") {
         url += `?filter=${filter}`;
@@ -26,12 +41,21 @@ const Users = () => {
       if (searchTerm.trim() !== "") {
         url += `${filter !== "all" ? "&" : "?"}search=${searchTerm}`;
       }
-      const temp = await fetchData(url);
-      setUsers(temp);
+      
+      const userData = await fetchData(url);
+      setUsers(userData);
       dispatch(setLoading(false));
-    } catch (error) {}
-  };
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      dispatch(setLoading(false));
+    }
+  }, [dispatch, filter, searchTerm]);
 
+  /**
+   * Deletes a user after confirmation
+   * Shows toast notifications during the process
+   * @param {string} userId - The ID of the user to delete
+   */
   const deleteUser = async (userId) => {
     try {
       const confirm = window.confirm("Are you sure you want to delete?");
@@ -47,25 +71,32 @@ const Users = () => {
             pending: "Deleting in...",
             success: "User deleted successfully",
             error: "Unable to delete user",
-            loading: "Deleting user...",
+            loading: "Deleting user..."
           }
         );
+        // Refresh the user list after deletion
         getAllUsers();
       }
     } catch (error) {
+      console.error("Error deleting user:", error);
       return error;
     }
   };
 
+  // Fetch all users on component mount
   useEffect(() => {
     getAllUsers();
-  }, []);
+  }, [getAllUsers]);
 
-  const filteredUsers = users.filter((doc) => {
+  /**
+   * Filters users based on selected filter and search term
+   * Currently supports filtering by first name
+   */
+  const filteredUsers = users.filter((user) => {
     if (filter === "all") {
       return true;
     } else if (filter === "firstname") {
-      return doc.firstname.toLowerCase().includes(searchTerm.toLowerCase());
+      return user.firstname.toLowerCase().includes(searchTerm.toLowerCase());
     } else {
       return true;
     }
@@ -77,20 +108,23 @@ const Users = () => {
         <Loading />
       ) : (
         <section className="user-section">
-          <div className="ayx">
+          {/* Filter and Search Controls */}
+          <div className="filter-search-container">
+            {/* Filter dropdown */}
             <div className="filter">
               <label htmlFor="filter">Filter by:</label>
               <select
                 id="filter"
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
+                aria-label="Filter users"
               >
                 <option value="all">All</option>
                 <option value="firstname">Name</option>
-
               </select>
             </div>
 
+            {/* Search input */}
             <div className="search">
               <label htmlFor="search">Search:</label>
               <input
@@ -100,12 +134,16 @@ const Users = () => {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search"
+                aria-label="Search users"
               />
             </div>
           </div>
+          
           <h3 className="home-sub-heading">All Users</h3>
-          {users.length > 0 ? (
+          
+          {filteredUsers.length > 0 ? (
             <div className="user-container">
+              {/* Users Table */}
               <table>
                 <thead>
                   <tr>
@@ -122,27 +160,28 @@ const Users = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredUsers.map((ele, i) => (
-                    <tr key={ele._id}>
-                      <td>{i + 1}</td>
+                  {filteredUsers.map((user, index) => (
+                    <tr key={user._id}>
+                      <td>{index + 1}</td>
                       <td>
                         <img
                           className="user-table-pic"
-                          src={ele.pic}
-                          alt={ele.firstname}
+                          src={user.pic}
+                          alt={`${user.firstname}'s profile`}
                         />
                       </td>
-                      <td>{ele.firstname}</td>
-                      <td>{ele.lastname}</td>
-                      <td>{ele.email}</td>
-                      <td>{ele.mobile}</td>
-                      <td>{ele.age}</td>
-                      <td>{ele.gender}</td>
-                      <td>{ele.isDoctor ? "Yes" : "No"}</td>
+                      <td>{user.firstname}</td>
+                      <td>{user.lastname}</td>
+                      <td>{user.email}</td>
+                      <td>{user.mobile}</td>
+                      <td>{user.age}</td>
+                      <td>{user.gender}</td>
+                      <td>{user.isDoctor ? "Yes" : "No"}</td>
                       <td className="select">
                         <button
                           className="btn user-btn"
-                          onClick={() => deleteUser(ele._id)}
+                          onClick={() => deleteUser(user._id)}
+                          aria-label={`Remove ${user.firstname}`}
                         >
                           Remove
                         </button>

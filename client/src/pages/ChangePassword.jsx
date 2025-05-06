@@ -1,49 +1,83 @@
+/**
+ * Change Password Component
+ * 
+ * This component allows authenticated users to change their account password.
+ * It provides a form for entering current password and setting a new password.
+ */
 import React, { useEffect, useState } from "react";
-import "../styles/profile.css";
-import Footer from "../components/Footer";
-import Navbar from "../components/Navbar";
+import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { setLoading } from "../redux/reducers/rootSlice";
-import { useDispatch, useSelector } from "react-redux";
-import Loading from "../components/Loading";
-import fetchData from "../helper/apiCall";
 import jwt_decode from "jwt-decode";
 
+// Components
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
+import Loading from "../components/Loading";
+
+// Redux and API
+import { setLoading } from "../redux/reducers/rootSlice";
+import fetchData from "../helper/apiCall";
+
+// Styles
+import "../styles/profile.css";
+
+// Set the base URL for axios requests
 axios.defaults.baseURL = process.env.REACT_APP_SERVER_DOMAIN;
 
 function ChangePassword() {
+  // Get user ID from JWT token
   const { userId } = jwt_decode(localStorage.getItem("token"));
+  
+  // Redux hooks
   const dispatch = useDispatch();
   const { loading } = useSelector((state) => state.root);
-  const [file, setFile] = useState("");
+  
+  // State for user profile image
+  const [profileImage, setProfileImage] = useState("");
+  
+  /**
+   * Form state for password change
+   * @property {string} password - Current password
+   * @property {string} newpassword - New password
+   * @property {string} confnewpassword - Confirmation of new password
+   */
   const [formDetails, setFormDetails] = useState({
     password: "",
     newpassword: "",
     confnewpassword: "",
   });
 
-  const getUser = async () => {
+  /**
+   * Fetches user data from the server
+   * Only needed to get the profile image for display
+   */
+  const fetchUserData = async () => {
     try {
       dispatch(setLoading(true));
-      const temp = await fetchData(`/user/getuser/${userId}`);
-      setFormDetails({
-        ...temp,
-        password: "",
-        newpassword: temp.newpassword === null ? "" : temp.newpassword,
-      });
-      setFile(temp.pic);
-      dispatch(setLoading(false));
+      const userData = await fetchData(`/user/getuser/${userId}`);
+      
+      // We only need the profile picture for display
+      setProfileImage(userData.pic);
     } catch (error) {
       console.error("Error fetching user data:", error);
+      toast.error("Could not load user profile");
+    } finally {
+      dispatch(setLoading(false));
     }
   };
 
+  // Fetch user data when component mounts
   useEffect(() => {
-    getUser();
-  }, [dispatch]);
+    fetchUserData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const inputChange = (e) => {
+  /**
+   * Handles form input changes
+   * @param {Object} e - Input change event
+   */
+  const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormDetails({
       ...formDetails,
@@ -51,19 +85,54 @@ function ChangePassword() {
     });
   };
 
-  const formSubmit = async (e) => {
-    e.preventDefault();
+  /**
+   * Validates password change form
+   * @returns {boolean} True if validation passes, false otherwise
+   */
+  const validateForm = () => {
     const { password, newpassword, confnewpassword } = formDetails;
-    // console.log(formDetails);
-    if (newpassword !== confnewpassword) {
-      return toast.error("Passwords do not match");
+    
+    // Check if fields are empty
+    if (!password || !newpassword || !confnewpassword) {
+      toast.error("All fields are required");
+      return false;
     }
+    
+    // Check if new password is too short
+    if (newpassword.length < 6) {
+      toast.error("New password must be at least 6 characters");
+      return false;
+    }
+    
+    // Check if passwords match
+    if (newpassword !== confnewpassword) {
+      toast.error("New passwords do not match");
+      return false;
+    }
+    
+    return true;
+  };
 
+  /**
+   * Submits the password change form
+   * @param {Object} e - Form submission event
+   */
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    // Validate form
+    if (!validateForm()) return;
+    
+    const { password, newpassword, confnewpassword } = formDetails;
+    
     try {
+      dispatch(setLoading(true));
+      
+      // Send password change request
       const response = await axios.put(
         "/user/changepassword",
         {
-          userId: userId,
+          userId,
           currentPassword: password,
           newPassword: newpassword,
           confirmNewPassword: confnewpassword,
@@ -74,26 +143,29 @@ function ChangePassword() {
           },
         }
       );
-      // console.log(response.data);
-
+      
+      // Handle successful password change
       if (response.data === "Password changed successfully") {
         toast.success("Password updated successfully");
+        
+        // Clear form fields after successful update
         setFormDetails({
-          ...formDetails,
           password: "",
           newpassword: "",
           confnewpassword: "",
         });
-      } else {
-        toast.error("Unable to update password");
       }
     } catch (error) {
       console.error("Error updating password:", error);
-      if (error.response) {
+      
+      // Display appropriate error message
+      if (error.response && error.response.data) {
         toast.error(error.response.data);
       } else {
         toast.error("Network error. Please try again.");
       }
+    } finally {
+      dispatch(setLoading(false));
     }
   };
 
@@ -103,41 +175,72 @@ function ChangePassword() {
       {loading ? (
         <Loading />
       ) : (
-        <section className="register-section flex-center">
+        <section className="register-section flex-center" aria-labelledby="change-password-heading">
           <div className="profile-container flex-center">
-            <h2 className="form-heading">Profile</h2>
-            <img src={file} alt="profile" className="profile-pic" />
-            <form onSubmit={formSubmit} className="register-form">
-              <div className="form-same-row">
+            <h2 id="change-password-heading" className="form-heading">Change Password</h2>
+            
+            {/* User profile picture */}
+            {profileImage && (
+              <img 
+                src={profileImage} 
+                alt="Profile" 
+                className="profile-pic" 
+              />
+            )}
+            
+            {/* Password change form */}
+            <form onSubmit={handleSubmit} className="register-form">
+              {/* Current password field */}
+              <div className="form-group">
+                <label htmlFor="current-password" className="visually-hidden">Current Password</label>
                 <input
                   type="password"
+                  id="current-password"
                   name="password"
                   className="form-input"
                   placeholder="Enter your current password"
                   value={formDetails.password}
-                  onChange={inputChange}
+                  onChange={handleInputChange}
+                  required
                 />
               </div>
+              
+              {/* New password fields */}
               <div className="form-same-row">
-                <input
-                  type="password"
-                  name="newpassword"
-                  className="form-input"
-                  placeholder="Enter your new password"
-                  value={formDetails.newpassword}
-                  onChange={inputChange}
-                />
-                <input
-                  type="password"
-                  name="confnewpassword"
-                  className="form-input"
-                  placeholder="Confirm your new password"
-                  value={formDetails.confnewpassword}
-                  onChange={inputChange}
-                />
+                <div className="form-group">
+                  <label htmlFor="new-password" className="visually-hidden">New Password</label>
+                  <input
+                    type="password"
+                    id="new-password"
+                    name="newpassword"
+                    className="form-input"
+                    placeholder="Enter your new password"
+                    value={formDetails.newpassword}
+                    onChange={handleInputChange}
+                    minLength="6"
+                    required
+                  />
+                </div>
+                
+                <div className="form-group">
+                  <label htmlFor="confirm-password" className="visually-hidden">Confirm Password</label>
+                  <input
+                    type="password"
+                    id="confirm-password"
+                    name="confnewpassword"
+                    className="form-input"
+                    placeholder="Confirm your new password"
+                    value={formDetails.confnewpassword}
+                    onChange={handleInputChange}
+                    minLength="6"
+                    required
+                  />
+                </div>
               </div>
+              
+              {/* Submit button */}
               <button type="submit" className="btn form-btn">
-                Update
+                Update Password
               </button>
             </form>
           </div>
