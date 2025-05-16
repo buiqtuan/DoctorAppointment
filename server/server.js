@@ -69,7 +69,7 @@ app.use(express.json());
 const userRouter = require("./routes/userRoutes");
 const doctorRouter = require("./routes/doctorRoutes");
 const appointRouter = require("./routes/appointRoutes");
-const notificationRouter = require("./routes/notificationRoutes");
+const notificationRouter = require("./routes/notificationRouter");
 
 // API Routes
 app.use("/api/user", userRouter);

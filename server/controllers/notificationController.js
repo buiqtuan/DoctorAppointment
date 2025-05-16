@@ -158,11 +158,22 @@ const getUnreadCount = async (req, res) => {
   }
 };
 
+const getallnotifs = async (req, res) => {
+  try {
+    const notifs = await Notification.find({ userId: req.locals });
+    return res.send(notifs);
+  } catch (error) {
+    console.error("Error fetching notifications:", error);
+    res.status(500).send("Unable to get all notifications");
+  }
+};
+
 module.exports = {
   getAllNotifications,
   markAsRead,
   markAllAsRead,
   deleteNotification,
   deleteAllNotifications,
-  getUnreadCount
+  getUnreadCount,
+  getallnotifs
 };
