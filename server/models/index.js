@@ -5,18 +5,16 @@ const basename = path.basename(__filename);
 const sequelize = require('../db/conn');
 const db = {};
 
-// Read all model files in the current directory
+// Load all model files in the current directory
 fs.readdirSync(__dirname)
   .filter(file => {
     return (
-      file.indexOf('.') !== 0 && // Ignore hidden files
-      file !== basename && // Ignore this file
-      file.slice(-3) === '.js' && // Only JS files
-      file !== 'index.js' // Double check to exclude this file
+      file.indexOf('.') !== 0 &&
+      file !== basename &&
+      file.slice(-3) === '.js'
     );
   })
   .forEach(file => {
-    // Import each model file and initialize it with the sequelize instance
     const model = require(path.join(__dirname, file))(sequelize);
     db[model.name] = model;
   });
@@ -28,7 +26,6 @@ Object.keys(db).forEach(modelName => {
   }
 });
 
-// Add the sequelize instance and Sequelize class to the exported object
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 
