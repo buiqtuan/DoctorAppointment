@@ -160,8 +160,27 @@ const getUnreadCount = async (req, res) => {
 
 const getallnotifs = async (req, res) => {
   try {
-    const notifs = await Notification.find({ userId: req.locals });
-    return res.send(notifs);
+    const userId = req.locals;
+    
+    // Parse pagination parameters
+    const page = parseInt(req.query.page) || 0;
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = page * limit;
+    
+    // Get notifications with pagination
+    const result = await Notification.findAndCountAll({
+      where: { userId },
+      order: [['createdAt', 'DESC']],
+      limit: limit,
+      offset: offset
+    });
+    
+    return res.status(200).json({
+      data: result.rows,
+      totalCount: result.count,
+      currentPage: page,
+      totalPages: Math.ceil(result.count / limit)
+    });
   } catch (error) {
     console.error("Error fetching notifications:", error);
     res.status(500).send("Unable to get all notifications");

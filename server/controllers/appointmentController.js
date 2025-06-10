@@ -1,6 +1,4 @@
-const User = require("../models/userModel")
-const Appointment = require("../models/appointmentModel")
-const Notification = require("../models/notificationModel")
+const { User, Appointment, Notification } = require("../models");
 
 /**
  * Get all appointments for a specific user or doctor
