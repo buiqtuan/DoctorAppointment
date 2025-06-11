@@ -77,9 +77,43 @@ const applyfordoctor = async (req, res) => {
 /**
  * Accept a doctor application and notify the user
  */
+/**
+ * Accept a doctor application and notify the user
+ */
 const acceptdoctor = async (req, res) => {
   try {
-    const userId = req.body.id;
+    // Try to get userId from different possible sources
+    const userId = req.body.id || req.body.userId || req.params.id;
+
+    // Validate that we have a userId
+    if (!userId) {
+      console.error("No userId provided in request:", {
+        body: req.body,
+        params: req.params
+      });
+      return res.status(400).json({
+        success: false,
+        message: "User ID is required"
+      });
+    }
+
+    // Check if user exists
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
+    }
+
+    // Check if doctor application exists
+    const doctorApplication = await Doctor.findOne({ where: { userId } });
+    if (!doctorApplication) {
+      return res.status(404).json({
+        success: false,
+        message: "Doctor application not found"
+      });
+    }
 
     // Update user record
     await User.update(
@@ -99,10 +133,17 @@ const acceptdoctor = async (req, res) => {
       content: `Congratulations, Your application has been accepted.`,
     });
 
-    return res.status(201).send("Application accepted notification sent");
+    return res.status(200).json({
+      success: true,
+      message: "Application accepted notification sent"
+    });
   } catch (error) {
     console.error("Error accepting doctor:", error);
-    res.status(500).send("Error while sending notification");
+    res.status(500).json({
+      success: false,
+      message: "Error while sending notification",
+      error: error.message
+    });
   }
 };
 
@@ -111,7 +152,29 @@ const acceptdoctor = async (req, res) => {
  */
 const rejectdoctor = async (req, res) => {
   try {
-    const userId = req.body.id;
+    // Try to get userId from different possible sources
+    const userId = req.body.id || req.body.userId || req.params.id;
+    
+    // Validate that we have a userId
+    if (!userId) {
+      console.error("No userId provided in request:", {
+        body: req.body,
+        params: req.params
+      });
+      return res.status(400).json({
+        success: false,
+        message: "User ID is required"
+      });
+    }
+
+    // Check if user exists
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
+    }
     
     // Update user status
     await User.update(
@@ -128,10 +191,17 @@ const rejectdoctor = async (req, res) => {
       content: `Sorry, Your application has been rejected.`,
     });
 
-    return res.status(201).send("Application rejection notification sent");
+    return res.status(200).json({
+      success: true,
+      message: "Application rejection notification sent"
+    });
   } catch (error) {
     console.error("Error rejecting doctor:", error);
-    res.status(500).send("Error while rejecting application");
+    res.status(500).json({
+      success: false,
+      message: "Error while rejecting application",
+      error: error.message
+    });
   }
 };
 

@@ -20,7 +20,7 @@ const Users = () => {
   const [users, setUsers] = useState([]);
   const [filter, setFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
-  
+
   // Redux hooks
   const dispatch = useDispatch();
   const { loading } = useSelector((state) => state.root);
@@ -32,7 +32,7 @@ const Users = () => {
   const getAllUsers = useCallback(async () => {
     try {
       dispatch(setLoading(true));
-      
+
       // Build query URL with filter and search params if provided
       let url = "/user/getallusers";
       if (filter !== "all") {
@@ -41,7 +41,7 @@ const Users = () => {
       if (searchTerm.trim() !== "") {
         url += `${filter !== "all" ? "&" : "?"}search=${searchTerm}`;
       }
-      
+
       const userData = await fetchData(url);
       setUsers(userData);
       dispatch(setLoading(false));
@@ -60,18 +60,24 @@ const Users = () => {
     try {
       const confirm = window.confirm("Are you sure you want to delete?");
       if (confirm) {
+        // Debug: Log the userId being sent
+        console.log("Deleting user with ID:", userId);
+
         await toast.promise(
-          axios.delete("/user/deleteuser", {
-            headers: {
-              authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-            data: { userId },
-          }),
+          axios.post(
+            "/user/deleteuser",
+            { userId }, // Send userId in request body
+            {
+              headers: {
+                authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            }
+          ),
           {
             pending: "Deleting in...",
             success: "User deleted successfully",
             error: "Unable to delete user",
-            loading: "Deleting user..."
+            loading: "Deleting user...",
           }
         );
         // Refresh the user list after deletion
@@ -138,9 +144,9 @@ const Users = () => {
               />
             </div>
           </div>
-          
+
           <h3 className="home-sub-heading">All Users</h3>
-          
+
           {filteredUsers.length > 0 ? (
             <div className="user-container">
               {/* Users Table */}
@@ -161,7 +167,7 @@ const Users = () => {
                 </thead>
                 <tbody>
                   {filteredUsers.map((user, index) => (
-                    <tr key={user._id}>
+                    <tr key={user.id || user._id}>
                       <td>{index + 1}</td>
                       <td>
                         <img
@@ -180,7 +186,7 @@ const Users = () => {
                       <td className="select">
                         <button
                           className="btn user-btn"
-                          onClick={() => deleteUser(user._id)}
+                          onClick={() => deleteUser(user.id || user._id)}
                           aria-label={`Remove ${user.firstname}`}
                         >
                           Remove

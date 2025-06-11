@@ -88,7 +88,7 @@ const BookAppointment = ({ setModalOpen, ele }) => {
         axios.post(
           "/appointment/bookappointment",
           {
-            doctorId: ele?.userId?._id,
+            doctorId: ele?.user?.id,
             date: formDetails.date,
             time: formDetails.time,
             age: formDetails.age,

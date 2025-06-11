@@ -11,19 +11,19 @@ import { setLoading } from "../redux/reducers/rootSlice";
 
 /**
  * Notifications Component
- * 
+ *
  * Displays user notifications with pagination functionality.
  * Fetches notifications from the API and handles pagination client-side.
  */
 const Notifications = () => {
   // State for storing notification data
   const [notifications, setNotifications] = useState([]);
-  
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const notificationsPerPage = 8;
-  
+
   // Redux state and dispatch
   const dispatch = useDispatch();
   const { loading } = useSelector((state) => state.root);
@@ -35,12 +35,14 @@ const Notifications = () => {
   const fetchNotifications = useCallback(async () => {
     try {
       dispatch(setLoading(true));
-      
+
       // Fetch data with pagination parameters
       const response = await fetchData(
-        `/notification/getallnotifs?page=${currentPage - 1}&limit=${notificationsPerPage}`
+        `/notification/getallnotifs?page=${
+          currentPage - 1
+        }&limit=${notificationsPerPage}`
       );
-      
+
       if (response && Array.isArray(response.data)) {
         setNotifications(response.data);
         setTotalCount(response.totalCount || response.data.length);
@@ -82,12 +84,12 @@ const Notifications = () => {
    */
   const renderPagination = () => {
     const pages = [];
-    
+
     // Display previous page button if not on first page
     if (currentPage > 1) {
       pages.push(
-        <button 
-          key="prev" 
+        <button
+          key="prev"
           onClick={() => handlePageChange(currentPage - 1)}
           aria-label="Previous page"
           className="pagination-btn"
@@ -96,27 +98,27 @@ const Notifications = () => {
         </button>
       );
     }
-    
+
     // Generate page number buttons
     for (let i = 1; i <= totalPages; i++) {
       pages.push(
-        <button 
-          key={i} 
+        <button
+          key={i}
           onClick={() => handlePageChange(i)}
-          className={`pagination-btn ${currentPage === i ? 'active' : ''}`}
+          className={`pagination-btn ${currentPage === i ? "active" : ""}`}
           aria-label={`Page ${i}`}
-          aria-current={currentPage === i ? 'page' : undefined}
+          aria-current={currentPage === i ? "page" : undefined}
         >
           {i}
         </button>
       );
     }
-    
+
     // Display next page button if not on last page
     if (currentPage < totalPages) {
       pages.push(
-        <button 
-          key="next" 
+        <button
+          key="next"
           onClick={() => handlePageChange(currentPage + 1)}
           aria-label="Next page"
           className="pagination-btn"
@@ -125,7 +127,7 @@ const Notifications = () => {
         </button>
       );
     }
-    
+
     return pages;
   };
 
@@ -135,7 +137,13 @@ const Notifications = () => {
    * @returns {string} Formatted date (YYYY-MM-DD)
    */
   const formatDate = (dateString) => {
-    return dateString.split("T")[0];
+    if (!dateString) return "N/A";
+    try {
+      return dateString.split("T")[0];
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return "Invalid Date";
+    }
   };
 
   /**
@@ -144,7 +152,15 @@ const Notifications = () => {
    * @returns {string} Formatted time (HH:MM:SS)
    */
   const formatTime = (dateString) => {
-    return dateString.split("T")[1].split(".")[0];
+    if (!dateString) return "N/A";
+    try {
+      const timePart = dateString.split("T")[1];
+      if (!timePart) return "N/A";
+      return timePart.split(".")[0];
+    } catch (error) {
+      console.error("Error formatting time:", error);
+      return "Invalid Time";
+    }
   };
 
   return (
@@ -170,17 +186,32 @@ const Notifications = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {notifications.map((notification, index) => (
-                    <tr key={notification?._id || index}>
-                      <td>{(currentPage - 1) * notificationsPerPage + index + 1}</td>
-                      <td>{notification?.content}</td>
-                      <td>{formatDate(notification?.updatedAt)}</td>
-                      <td>{formatTime(notification?.updatedAt)}</td>
-                    </tr>
-                  ))}
+                  {notifications.map((notification, index) => {
+                    // Debug: Log notification structure
+                    console.log("Notification data:", notification);
+
+                    return (
+                      <tr key={notification?.id || notification?._id || index}>
+                        <td>
+                          {(currentPage - 1) * notificationsPerPage + index + 1}
+                        </td>
+                        <td>{notification?.content || "No content"}</td>
+                        <td>
+                          {formatDate(
+                            notification?.updatedAt || notification?.createdAt
+                          )}
+                        </td>
+                        <td>
+                          {formatTime(
+                            notification?.updatedAt || notification?.createdAt
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
-              
+
               {/* Pagination controls */}
               {totalPages > 1 && (
                 <div className="pagination" aria-label="Pagination navigation">

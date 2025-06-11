@@ -13,16 +13,16 @@ axios.defaults.baseURL = process.env.REACT_APP_SERVER_DOMAIN;
 
 /**
  * AdminApplications Component
- * 
+ *
  * Displays and manages doctor applications for admin approval.
  * Allows administrators to view, accept, or reject pending doctor applications.
- * 
+ *
  * @returns {JSX.Element} The rendered AdminApplications component
  */
 const AdminApplications = () => {
   // State to store doctor applications
   const [applications, setApplications] = useState([]);
-  
+
   // Redux state and dispatch
   const dispatch = useDispatch();
   const { loading } = useSelector((state) => state.root);
@@ -51,7 +51,10 @@ const AdminApplications = () => {
     try {
       const confirm = window.confirm("Are you sure you want to accept?");
       if (!confirm) return;
-      
+
+      // Debug: Log the userId being sent
+      console.log("Accepting user with ID:", userId);
+
       await toast.promise(
         axios.put(
           "/doctor/acceptdoctor",
@@ -59,7 +62,7 @@ const AdminApplications = () => {
           {
             headers: {
               authorization: `Bearer ${localStorage.getItem("token")}`,
-            }
+            },
           }
         ),
         {
@@ -68,7 +71,7 @@ const AdminApplications = () => {
           loading: "Accepting application...",
         }
       );
-      
+
       // Refresh the applications list
       fetchApplications();
     } catch (error) {
@@ -84,7 +87,10 @@ const AdminApplications = () => {
     try {
       const confirm = window.confirm("Are you sure you want to reject?");
       if (!confirm) return;
-      
+
+      // Debug: Log the userId being sent
+      console.log("Rejecting user with ID:", userId);
+
       await toast.promise(
         axios.put(
           "/doctor/rejectdoctor",
@@ -92,7 +98,7 @@ const AdminApplications = () => {
           {
             headers: {
               authorization: `Bearer ${localStorage.getItem("token")}`,
-            }
+            },
           }
         ),
         {
@@ -101,7 +107,7 @@ const AdminApplications = () => {
           loading: "Rejecting application...",
         }
       );
-      
+
       // Refresh the applications list
       fetchApplications();
     } catch (error) {
@@ -115,7 +121,8 @@ const AdminApplications = () => {
   }, []);
 
   // Default profile image fallback
-  const defaultProfileImage = "https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg";
+  const defaultProfileImage =
+    "https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg";
 
   return (
     <>
@@ -124,7 +131,7 @@ const AdminApplications = () => {
       ) : (
         <section className="user-section">
           <h3 className="home-sub-heading">All Applications</h3>
-          
+
           {applications.length > 0 ? (
             <div className="user-container">
               <table>
@@ -144,16 +151,16 @@ const AdminApplications = () => {
                 </thead>
                 <tbody>
                   {applications.map((application, index) => {
-                    const user = application?.userId || {};
-                    
+                    const user = application?.user || application?.userId || {};
+
                     return (
-                      <tr key={application?._id || index}>
+                      <tr key={application?.id || application?._id || index}>
                         <td>{index + 1}</td>
                         <td>
                           <img
                             className="user-table-pic"
                             src={user?.pic || defaultProfileImage}
-                            alt={`${user?.firstname || 'Doctor'}'s profile`}
+                            alt={`${user?.firstname || "Doctor"}'s profile`}
                             loading="lazy"
                           />
                         </td>
@@ -167,14 +174,14 @@ const AdminApplications = () => {
                         <td className="select">
                           <button
                             className="btn user-btn accept-btn"
-                            onClick={() => acceptUser(user?._id)}
+                            onClick={() => acceptUser(user?.id || user?._id || application?.userId)}
                             aria-label={`Accept ${user?.firstname}'s application`}
                           >
                             Accept
                           </button>
                           <button
                             className="btn user-btn"
-                            onClick={() => rejectUser(user?._id)}
+                            onClick={() => rejectUser(user?.id || user?._id || application?.userId)}
                             aria-label={`Reject ${user?.firstname}'s application`}
                           >
                             Reject

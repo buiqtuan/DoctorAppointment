@@ -9,31 +9,49 @@ const getallappointments = async (req, res) => {
   try {
     // Find the current user
     const user = await User.findByPk(req.locals);
-    
+
     // If user not found
     if (!user) {
       return res.status(404).send("User not found");
     }
 
     let appointments;
-    
+
     // If user is a doctor, get appointments where doctorId matches user's ID
-    if (user.isDoctor) {
+    if (user.dataValues.role === "Doctor" || user.isDoctor === true) {
       appointments = await Appointment.findAll({
         where: { doctorId: req.locals },
         include: [
-          { model: User, as: 'patient', attributes: ['firstname', 'lastname', 'email', 'mobile', 'pic'] }
+          {
+            model: User,
+            as: "patient",
+            attributes: ["firstname", "lastname", "email", "mobile", "pic"],
+          },
+          {
+            model: User,
+            as: "doctor",
+            attributes: ["firstname", "lastname", "email", "mobile", "pic"],
+          },
         ],
-        order: [['createdAt', 'DESC']]
+        order: [["createdAt", "DESC"]],
       });
     } else {
       // If user is a patient, get appointments where userId matches user's ID
       appointments = await Appointment.findAll({
         where: { userId: req.locals },
         include: [
-          { model: User, as: 'doctor', attributes: ['firstname', 'lastname', 'email', 'mobile', 'pic'] }
+          {
+            model: User,
+            as: "doctor",
+            attributes: ["firstname", "lastname", "email", "mobile", "pic"],
+          },
+          {
+            model: User,
+            as: "patient",
+            attributes: ["firstname", "lastname", "email", "mobile", "pic"],
+          },
         ],
-        order: [['createdAt', 'DESC']]
+        order: [["createdAt", "DESC"]],
       });
     }
 
@@ -54,7 +72,7 @@ const bookappointment = async (req, res) => {
     // Find the user and doctor
     const user = await User.findByPk(req.locals);
     const doctor = await User.findByPk(req.body.doctorId);
-    
+
     if (!user || !doctor) {
       return res.status(404).send("User or doctor not found");
     }
@@ -69,8 +87,8 @@ const bookappointment = async (req, res) => {
       gender: user.gender || req.body.gender,
       bloodGroup: user.bloodGroup || req.body.bloodGroup,
       number: user.mobile || req.body.number,
-      familyDiseases: req.body.familyDiseases || '',
-      status: "Pending"
+      familyDiseases: req.body.familyDiseases || "",
+      status: "Pending",
     });
 
     // Create notifications in parallel
@@ -80,7 +98,7 @@ const bookappointment = async (req, res) => {
         userId: req.body.doctorId,
         content: `You have an appointment with ${user.firstname} ${user.lastname} on ${req.body.date} at ${req.body.time} Age: ${user.age} bloodGroup: ${user.bloodGroup} Gender: ${user.gender} Mobile Number: ${user.mobile} Family Diseases: ${user.familyDiseases}`,
       }),
-      
+
       // No need to wait for appointment creation as it's already created above
     ]);
 
@@ -106,7 +124,7 @@ const completed = async (req, res) => {
 
     // Get user data for notification
     const user = await User.findByPk(req.locals);
-    
+
     // Create notifications in parallel
     await Promise.all([
       // Create notification for the user
@@ -114,12 +132,12 @@ const completed = async (req, res) => {
         userId: req.locals,
         content: `Your appointment with ${req.body.doctorname} has been completed`,
       }),
-      
+
       // Create notification for the doctor
       Notification.create({
         userId: req.body.doctorId,
         content: `Your appointment with ${user.firstname} ${user.lastname} has been completed`,
-      })
+      }),
     ]);
 
     return res.status(201).send("Appointment completed");

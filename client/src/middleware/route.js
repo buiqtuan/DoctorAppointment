@@ -55,7 +55,7 @@ export const Admin = ({ children }) => {
   try {
     const user = jwtDecode(token);
     
-    if (!user.isAdmin) {
+    if (user.role !== "Admin") {
       return <Navigate to="/" replace />;
     }
     
