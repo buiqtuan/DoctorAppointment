@@ -8,6 +8,80 @@ const {
 } = require("../models");
 const { Op } = require("sequelize");
 
+const searchDoctors = async (req, res) => {
+  try {
+    const { specifications, minExperience, minFees, maxFees } = req.query;
+    
+    // Base query to find active doctors
+    const whereClause = { isDoctor: true };
+    
+    // Exclude requesting doctor from results if logged in
+    if (req.locals) {
+      whereClause.id = { [Op.ne]: req.locals };
+    }
+
+    // Add experience filter
+    if (minExperience && !isNaN(minExperience)) {
+      whereClause.experience = { [Op.gte]: parseInt(minExperience) };
+    }
+
+    // Add fees filter
+    if (minFees && !isNaN(minFees) && maxFees && !isNaN(maxFees)) {
+      whereClause.fees = { 
+        [Op.between]: [parseFloat(minFees), parseFloat(maxFees)] 
+      };
+    } else if (minFees && !isNaN(minFees)) {
+      whereClause.fees = { [Op.gte]: parseFloat(minFees) };
+    } else if (maxFees && !isNaN(maxFees)) {
+      whereClause.fees = { [Op.lte]: parseFloat(maxFees) };
+    }
+
+    const includeOptions = [
+      {
+        model: User,
+        as: "user",
+      },
+      {
+        model: Specification,
+        as: "specializations",
+        through: { attributes: [] },
+        where: { isDeleted: false },
+        required: false,
+      },
+    ];
+
+    // Add specification filter if provided
+    if (specifications) {
+      const specIds = specifications.split(',').map(id => parseInt(id)).filter(id => !isNaN(id));
+      if (specIds.length > 0) {
+        includeOptions[1].where = {
+          ...includeOptions[1].where,
+          id: { [Op.in]: specIds }
+        };
+        includeOptions[1].required = true; // Make it required to filter doctors
+      }
+    }
+
+    const doctors = await Doctor.findAll({
+      where: whereClause,
+      include: includeOptions,
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: doctors,
+      count: doctors.length
+    });
+  } catch (error) {
+    console.error("Error searching doctors:", error);
+    res.status(500).json({
+      success: false,
+      message: "Unable to search doctors",
+      error: error.message
+    });
+  }
+};
+
 /**
  * Get all doctors with isDoctor status true
  * Excludes the requesting doctor if they are making the request
@@ -329,4 +403,5 @@ module.exports = {
   applyfordoctor,
   acceptdoctor,
   rejectdoctor,
+  searchDoctors
 };

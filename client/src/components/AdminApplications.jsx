@@ -115,6 +115,18 @@ const AdminApplications = () => {
     }
   };
 
+  /**
+   * Format specializations for display
+   * @param {Array} specializations - Array of specialization objects
+   * @returns {string} Comma-separated specialization names
+   */
+  const formatSpecializations = (specializations) => {
+    if (!specializations || !Array.isArray(specializations) || specializations.length === 0) {
+      return "Not specified";
+    }
+    return specializations.map(spec => spec.name).join(", ");
+  };
+
   // Fetch applications when component mounts
   useEffect(() => {
     fetchApplications();
@@ -144,7 +156,7 @@ const AdminApplications = () => {
                     <th>Email</th>
                     <th>Mobile No.</th>
                     <th>Experience</th>
-                    <th>Specialization</th>
+                    <th>Specializations</th>
                     <th>Fees</th>
                     <th>Action</th>
                   </tr>
@@ -169,7 +181,7 @@ const AdminApplications = () => {
                         <td>{user?.email}</td>
                         <td>{user?.mobile}</td>
                         <td>{application?.experience}</td>
-                        <td>{application?.specialization}</td>
+                        <td>{formatSpecializations(application?.specializations)}</td>
                         <td>{application?.fees}</td>
                         <td className="select">
                           <button

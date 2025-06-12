@@ -8,6 +8,8 @@ doctorRouter.get("/getalldoctors", doctorController.getalldoctors);
 
 doctorRouter.get("/getnotdoctors", auth, doctorController.getnotdoctors);
 
+doctorRouter.get("/search", doctorController.searchDoctors);
+
 doctorRouter.post("/applyfordoctor", auth, doctorController.applyfordoctor);
 
 doctorRouter.put("/deletedoctor", auth, doctorController.deletedoctor);
