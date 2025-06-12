@@ -8,7 +8,7 @@ doctorRouter.get("/getalldoctors", doctorController.getalldoctors);
 
 doctorRouter.get("/getnotdoctors", auth, doctorController.getnotdoctors);
 
-doctorRouter.get("/search", doctorController.searchDoctors);
+doctorRouter.get("/search", auth, doctorController.searchDoctors);
 
 doctorRouter.post("/applyfordoctor", auth, doctorController.applyfordoctor);
 
@@ -17,5 +17,7 @@ doctorRouter.put("/deletedoctor", auth, doctorController.deletedoctor);
 doctorRouter.put("/acceptdoctor", auth, doctorController.acceptdoctor);
 
 doctorRouter.put("/rejectdoctor", auth, doctorController.rejectdoctor);
+
+doctorRouter.get("/top-doctors", doctorController.getTopDoctors);
 
 module.exports = doctorRouter;

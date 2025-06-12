@@ -5,16 +5,17 @@ const {
   Appointment,
   Specification,
   DoctorSpecification,
+  sequelize,
 } = require("../models");
 const { Op } = require("sequelize");
 
 const searchDoctors = async (req, res) => {
   try {
     const { specifications, minExperience, minFees, maxFees } = req.query;
-    
+
     // Base query to find active doctors
     const whereClause = { isDoctor: true };
-    
+
     // Exclude requesting doctor from results if logged in
     if (req.locals) {
       whereClause.id = { [Op.ne]: req.locals };
@@ -27,8 +28,8 @@ const searchDoctors = async (req, res) => {
 
     // Add fees filter
     if (minFees && !isNaN(minFees) && maxFees && !isNaN(maxFees)) {
-      whereClause.fees = { 
-        [Op.between]: [parseFloat(minFees), parseFloat(maxFees)] 
+      whereClause.fees = {
+        [Op.between]: [parseFloat(minFees), parseFloat(maxFees)],
       };
     } else if (minFees && !isNaN(minFees)) {
       whereClause.fees = { [Op.gte]: parseFloat(minFees) };
@@ -52,11 +53,14 @@ const searchDoctors = async (req, res) => {
 
     // Add specification filter if provided
     if (specifications) {
-      const specIds = specifications.split(',').map(id => parseInt(id)).filter(id => !isNaN(id));
+      const specIds = specifications
+        .split(",")
+        .map((id) => parseInt(id))
+        .filter((id) => !isNaN(id));
       if (specIds.length > 0) {
         includeOptions[1].where = {
           ...includeOptions[1].where,
-          id: { [Op.in]: specIds }
+          id: { [Op.in]: specIds },
         };
         includeOptions[1].required = true; // Make it required to filter doctors
       }
@@ -70,14 +74,14 @@ const searchDoctors = async (req, res) => {
     return res.status(200).json({
       success: true,
       data: doctors,
-      count: doctors.length
+      count: doctors.length,
     });
   } catch (error) {
     console.error("Error searching doctors:", error);
     res.status(500).json({
       success: false,
       message: "Unable to search doctors",
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -396,6 +400,99 @@ const deletedoctor = async (req, res) => {
   }
 };
 
+/**
+ * Get top doctors with most booked appointments
+ */
+const getTopDoctors = async (req, res) => {
+  try {
+    const { limit = 3 } = req.query;
+
+    // First, get appointment counts for all doctors
+    const appointmentCounts = await Appointment.findAll({
+      attributes: [
+        "doctorId",
+        [sequelize.fn("COUNT", sequelize.col("id")), "appointmentCount"],
+      ],
+      group: ["doctorId"],
+      order: [[sequelize.fn("COUNT", sequelize.col("id")), "DESC"]],
+      limit: parseInt(limit),
+      raw: true,
+    });
+
+    if (appointmentCounts.length === 0) {
+      return res.status(200).json({
+        success: true,
+        data: [],
+        count: 0,
+      });
+    }
+
+    // Get the doctor IDs and their counts
+    const doctorIds = appointmentCounts.map((item) => item.doctorId);
+    const countMap = {};
+    appointmentCounts.forEach((item) => {
+      countMap[item.doctorId] = parseInt(item.appointmentCount);
+    });
+
+    // Get full doctor details
+    const topDoctors = await Doctor.findAll({
+      where: {
+        isDoctor: true,
+        userId: { [Op.in]: doctorIds },
+      },
+      include: [
+        {
+          model: User,
+          as: "user",
+          attributes: ["id", "firstname", "lastname", "email", "mobile", "pic"],
+        },
+        {
+          model: Specification,
+          as: "specializations",
+          through: { attributes: [] },
+          where: { isDeleted: false },
+          required: false,
+        },
+      ],
+    });
+
+    // Add appointment counts and format specializations
+    const doctorsWithCounts = topDoctors.map((doctor) => {
+      const doctorData = doctor.toJSON();
+
+      // Format specializations for consistent frontend usage
+      const specializationNames =
+        doctorData.specializations && doctorData.specializations.length > 0
+          ? doctorData.specializations.map((spec) => spec.name).join(", ")
+          : doctorData.specialization || "Not specified";
+
+      return {
+        ...doctorData,
+        appointmentCount: countMap[doctor.userId] || 0,
+        // Keep both for backward compatibility
+        specialization: specializationNames,
+        formattedSpecializations: specializationNames,
+      };
+    });
+
+    // Sort by appointment count (descending)
+    doctorsWithCounts.sort((a, b) => b.appointmentCount - a.appointmentCount);
+
+    return res.status(200).json({
+      success: true,
+      data: doctorsWithCounts.slice(0, parseInt(limit)),
+      count: doctorsWithCounts.length,
+    });
+  } catch (error) {
+    console.error("Error fetching top doctors:", error);
+    res.status(500).json({
+      success: false,
+      message: "Unable to get top doctors",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   getalldoctors,
   getnotdoctors,
@@ -403,5 +500,6 @@ module.exports = {
   applyfordoctor,
   acceptdoctor,
   rejectdoctor,
-  searchDoctors
+  searchDoctors,
+  getTopDoctors,
 };

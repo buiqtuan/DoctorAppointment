@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "../styles/bookappointment.css";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -22,6 +22,23 @@ const BookAppointment = ({ setModalOpen, ele }) => {
     number: "",
     familyDiseases: "",
   });
+
+  // Prevent body scroll when modal is open
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, []);
+
+  /**
+   * Handles clicking outside the modal to close it
+   */
+  const handleBackdropClick = (e) => {
+    if (e.target === e.currentTarget) {
+      setModalOpen(false);
+    }
+  };
 
   /**
    * Handles input changes for all form fields
@@ -88,7 +105,7 @@ const BookAppointment = ({ setModalOpen, ele }) => {
         axios.post(
           "/appointment/bookappointment",
           {
-            doctorId: ele?.user?.id,
+            doctorId: ele?.user?.id || ele?.userId,
             date: formDetails.date,
             time: formDetails.time,
             age: formDetails.age,
@@ -96,7 +113,7 @@ const BookAppointment = ({ setModalOpen, ele }) => {
             gender: formDetails.gender,
             number: formDetails.number,
             familyDiseases: formDetails.familyDiseases,
-            doctorname: `${ele?.userId?.firstname} ${ele?.userId?.lastname}`,
+            doctorname: `${ele?.user?.firstname || ele?.userId?.firstname} ${ele?.user?.lastname || ele?.userId?.lastname}`,
           },
           {
             headers: {
@@ -123,7 +140,7 @@ const BookAppointment = ({ setModalOpen, ele }) => {
    * @returns {JSX.Element} Appointment booking form
    */
   const renderBookingForm = () => (
-    <form className="register-form">
+    <form className="register-form" onSubmit={bookAppointment}>
       <input
         type="date"
         name="date"
@@ -189,7 +206,7 @@ const BookAppointment = ({ setModalOpen, ele }) => {
       
       <textarea
         name="familyDiseases"
-        placeholder="Family Diseases"
+        placeholder="Family Medical History (Optional)"
         className="form-input"
         value={formDetails.familyDiseases}
         onChange={inputChange}
@@ -199,7 +216,6 @@ const BookAppointment = ({ setModalOpen, ele }) => {
       <button
         type="submit"
         className="btn form-btn"
-        onClick={bookAppointment}
       >
         Book Appointment
       </button>
@@ -207,7 +223,7 @@ const BookAppointment = ({ setModalOpen, ele }) => {
   );
 
   return (
-    <div className="modal flex-center">
+    <div className="modal" onClick={handleBackdropClick}>
       <div className="modal__content">
         <h2 className="page-heading">Book Appointment</h2>
         <IoMdClose

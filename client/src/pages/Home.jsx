@@ -5,6 +5,7 @@ import Footer from "../components/Footer";
 import Hero from "../components/Hero";
 import Navbar from "../components/Navbar";
 import HomeCircles from "../components/HomeCircles";
+import SignatureDoctors from "../components/SignatureDoctors";
 
 /**
  * Home Component
@@ -17,6 +18,7 @@ import HomeCircles from "../components/HomeCircles";
  * - Hero: Main banner/introduction section
  * - AboutUs: Information about the service
  * - HomeCircles: Feature highlights or service categories
+ * - SignatureDoctors: Top 3 doctors with most appointments
  * - Contact: Contact information or form
  * - Footer: Page footer with links and additional info
  */
@@ -34,6 +36,9 @@ const Home = () => {
       
       {/* Service categories or feature highlights */}
       <HomeCircles />
+      
+      {/* Signature Doctors section showing top doctors */}
+      <SignatureDoctors />
       
       {/* Contact section for user inquiries */}
       <Contact />

@@ -10,6 +10,7 @@ import Loading from "../components/Loading";
 import Empty from "../components/Empty";
 import BookAppointment from "../components/BookAppointment";
 import DoctorSearch from "../components/DoctorSearch";
+import DoctorCard from "../components/DoctorCard";
 
 // Redux
 import { setLoading } from "../redux/reducers/rootSlice";
@@ -21,76 +22,6 @@ import "../styles/doctorcard.css";
 
 // Configure axios base URL
 axios.defaults.baseURL = process.env.REACT_APP_SERVER_DOMAIN;
-
-/**
- * DoctorCard - Displays individual doctor information and handles appointment booking
- */
-const DoctorCard = ({ ele }) => {
-  const [modalOpen, setModalOpen] = useState(false);
-  const token = localStorage.getItem("token") || "";
-
-  const handleModal = () => {
-    if (!token) {
-      toast.error("You must log in first");
-      return;
-    }
-    setModalOpen(true);
-  };
-
-  const { user, specializations, experience, fees } = ele || {};
-  const { firstname, lastname, mobile, pic } = user || {};
-
-  const defaultProfileImg =
-    "https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg";
-
-  const specializationNames = specializations && specializations.length > 0
-    ? specializations.map(spec => spec.name).join(", ")
-    : "Not specified";
-
-  return (
-    <div className="card">
-      <div className="card-img flex-center">
-        <img
-          src={pic || defaultProfileImg}
-          alt={`Dr. ${firstname} ${lastname}'s profile`}
-        />
-      </div>
-
-      <h3 className="card-name">
-        Dr. {firstname && lastname ? `${firstname} ${lastname}` : "Unknown"}
-      </h3>
-
-      <p className="specialization">
-        <strong>Specializations: </strong>
-        {specializationNames}
-      </p>
-
-      <p className="experience">
-        <strong>Experience: </strong>
-        {experience || 0}yrs
-      </p>
-
-      <p className="fees">
-        <strong>Fees per consultation: </strong>$ {fees || 0}
-      </p>
-
-      <p className="phone">
-        <strong>Phone: </strong>
-        {mobile || "Not available"}
-      </p>
-
-      <button
-        className="btn appointment-btn"
-        onClick={handleModal}
-        aria-label="Book Appointment"
-      >
-        Book Appointment
-      </button>
-
-      {modalOpen && <BookAppointment setModalOpen={setModalOpen} ele={ele} />}
-    </div>
-  );
-};
 
 /**
  * Doctors Page - Main component that displays all available doctors
