@@ -1,4 +1,11 @@
-const { User, Doctor, Notification, Appointment } = require("../models");
+const {
+  User,
+  Doctor,
+  Notification,
+  Appointment,
+  Specification,
+  DoctorSpecification,
+} = require("../models");
 const { Op } = require("sequelize");
 
 /**
@@ -9,17 +16,29 @@ const getalldoctors = async (req, res) => {
   try {
     // Base query to find active doctors
     const whereClause = { isDoctor: true };
-    
+
     // Exclude requesting doctor from results if logged in
     if (req.locals) {
       whereClause.id = { [Op.ne]: req.locals };
     }
-    
+
     const docs = await Doctor.findAll({
       where: whereClause,
-      include: [{ model: User, as: 'user' }]
+      include: [
+        {
+          model: User,
+          as: "user",
+        },
+        {
+          model: Specification,
+          as: "specializations",
+          through: { attributes: [] }, // Exclude junction table attributes
+          where: { isDeleted: false },
+          required: false,
+        },
+      ],
     });
-    
+
     return res.status(200).send(docs);
   } catch (error) {
     console.error("Error fetching doctors:", error);
@@ -35,9 +54,21 @@ const getnotdoctors = async (req, res) => {
     const docs = await Doctor.findAll({
       where: {
         isDoctor: false,
-        userId: { [Op.ne]: req.locals }
+        userId: { [Op.ne]: req.locals },
       },
-      include: [{ model: User, as: 'user' }]
+      include: [
+        {
+          model: User,
+          as: "user",
+        },
+        {
+          model: Specification,
+          as: "specializations",
+          through: { attributes: [] }, // Exclude junction table attributes
+          where: { isDeleted: false },
+          required: false,
+        },
+      ],
     });
 
     return res.status(200).send(docs);
@@ -53,30 +84,82 @@ const getnotdoctors = async (req, res) => {
 const applyfordoctor = async (req, res) => {
   try {
     // Check if user already has an application
-    const existingApplication = await Doctor.findOne({ 
-      where: { userId: req.locals }
+    const existingApplication = await Doctor.findOne({
+      where: { userId: req.locals },
     });
-    
+
     if (existingApplication) {
-      return res.status(400).send("Application already exists");
+      return res.status(400).json({
+        success: false,
+        message: "Application already exists",
+      });
     }
 
-    // Create and save new doctor application
-    await Doctor.create({ 
-      ...req.body.formDetails, 
-      userId: req.locals 
+    // Handle both nested and direct data structures
+    const formData = req.body.formDetails || req.body;
+    const { experience, fees, specializations } = formData;
+
+    // Validate required fields
+    if (!experience || !fees) {
+      return res.status(400).json({
+        success: false,
+        message: "Experience and fees are required",
+      });
+    }
+
+    // Validate specializations
+    if (
+      !specializations ||
+      !Array.isArray(specializations) ||
+      specializations.length === 0
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "At least one specialization is required",
+      });
+    }
+
+    // Get the first specialization name for the main specialization field
+    const primarySpecification = await Specification.findByPk(
+      specializations[0]
+    );
+    if (!primarySpecification) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid specialization selected",
+      });
+    }
+
+    // Create new doctor application
+    const doctor = await Doctor.create({
+      experience,
+      fees,
+      specialization: primarySpecification.name, // Set the primary specialization
+      userId: req.locals,
     });
 
-    return res.status(201).send("Application submitted successfully");
+    // Add all specializations to the junction table
+    const specificationRecords = specializations.map((specId) => ({
+      doctorId: doctor.id,
+      specificationId: specId,
+    }));
+
+    await DoctorSpecification.bulkCreate(specificationRecords);
+
+    return res.status(201).json({
+      success: true,
+      message: "Application submitted successfully",
+    });
   } catch (error) {
     console.error("Error submitting application:", error);
-    res.status(500).send("Unable to submit application");
+    res.status(500).json({
+      success: false,
+      message: "Unable to submit application",
+      error: error.message,
+    });
   }
 };
 
-/**
- * Accept a doctor application and notify the user
- */
 /**
  * Accept a doctor application and notify the user
  */
@@ -89,11 +172,11 @@ const acceptdoctor = async (req, res) => {
     if (!userId) {
       console.error("No userId provided in request:", {
         body: req.body,
-        params: req.params
+        params: req.params,
       });
       return res.status(400).json({
         success: false,
-        message: "User ID is required"
+        message: "User ID is required",
       });
     }
 
@@ -102,7 +185,7 @@ const acceptdoctor = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: "User not found"
+        message: "User not found",
       });
     }
 
@@ -111,7 +194,7 @@ const acceptdoctor = async (req, res) => {
     if (!doctorApplication) {
       return res.status(404).json({
         success: false,
-        message: "Doctor application not found"
+        message: "Doctor application not found",
       });
     }
 
@@ -122,10 +205,7 @@ const acceptdoctor = async (req, res) => {
     );
 
     // Update doctor record
-    await Doctor.update(
-      { isDoctor: true },
-      { where: { userId } }
-    );
+    await Doctor.update({ isDoctor: true }, { where: { userId } });
 
     // Create and send notification
     await Notification.create({
@@ -135,14 +215,14 @@ const acceptdoctor = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "Application accepted notification sent"
+      message: "Application accepted notification sent",
     });
   } catch (error) {
     console.error("Error accepting doctor:", error);
     res.status(500).json({
       success: false,
       message: "Error while sending notification",
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -154,16 +234,16 @@ const rejectdoctor = async (req, res) => {
   try {
     // Try to get userId from different possible sources
     const userId = req.body.id || req.body.userId || req.params.id;
-    
+
     // Validate that we have a userId
     if (!userId) {
       console.error("No userId provided in request:", {
         body: req.body,
-        params: req.params
+        params: req.params,
       });
       return res.status(400).json({
         success: false,
-        message: "User ID is required"
+        message: "User ID is required",
       });
     }
 
@@ -172,16 +252,24 @@ const rejectdoctor = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: "User not found"
+        message: "User not found",
       });
     }
-    
+
+    // Find the doctor record to get doctorId for cleanup
+    const doctor = await Doctor.findOne({ where: { userId } });
+
+    if (doctor) {
+      // Clean up doctor specializations first
+      await DoctorSpecification.destroy({ where: { doctorId: doctor.id } });
+    }
+
     // Update user status
     await User.update(
       { isDoctor: false, status: "rejected" },
       { where: { id: userId } }
     );
-    
+
     // Remove doctor application
     await Doctor.destroy({ where: { userId } });
 
@@ -193,14 +281,14 @@ const rejectdoctor = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "Application rejection notification sent"
+      message: "Application rejection notification sent",
     });
   } catch (error) {
     console.error("Error rejecting doctor:", error);
     res.status(500).json({
       success: false,
       message: "Error while rejecting application",
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -211,19 +299,22 @@ const rejectdoctor = async (req, res) => {
 const deletedoctor = async (req, res) => {
   try {
     const { userId } = req.body;
-    
+
+    // Find the doctor record first to get the doctorId
+    const doctor = await Doctor.findOne({ where: { userId } });
+
+    if (doctor) {
+      // Delete doctor specializations, doctor record and appointments in parallel
+      await Promise.all([
+        DoctorSpecification.destroy({ where: { doctorId: doctor.id } }),
+        Doctor.destroy({ where: { userId } }),
+        Appointment.destroy({ where: { userId } }),
+      ]);
+    }
+
     // Update user record
-    await User.update(
-      { isDoctor: false },
-      { where: { id: userId } }
-    );
-    
-    // Delete doctor record and any appointments in parallel
-    await Promise.all([
-      Doctor.destroy({ where: { userId } }),
-      Appointment.destroy({ where: { userId } })
-    ]);
-    
+    await User.update({ isDoctor: false }, { where: { id: userId } });
+
     return res.status(200).send("Doctor deleted successfully");
   } catch (error) {
     console.error("Error deleting doctor:", error);

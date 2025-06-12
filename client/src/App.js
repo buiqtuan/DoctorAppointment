@@ -67,6 +67,7 @@ function App() {
           <Route path="/dashboard/doctors" element={<Admin><Dashboard type={"doctors"} /></Admin>} />
           <Route path="/dashboard/appointments" element={<Admin><Dashboard type={"appointments"} /></Admin>} />
           <Route path="/dashboard/applications" element={<Admin><Dashboard type={"applications"} /></Admin>} />
+          <Route path="/dashboard/specifications" element={<Admin><Dashboard type={"specifications"} /></Admin>} />
           <Route path="/dashboard/aprofile" element={<Admin><Dashboard type={"aprofile"} /></Admin>} />
           
           {/* Fallback for undefined routes */}

@@ -1,87 +1,90 @@
+import "../styles/doctorcard.css";
+import React, { useState } from "react";
+import BookAppointment from "../components/BookAppointment";
+import { toast } from "react-hot-toast";
+
 /**
- * Doctors Page Component
- * 
- * Displays a directory of all available doctors in the system.
- * Fetches doctor data from the API and renders it in a responsive grid layout.
+ * DoctorCard - Displays doctor information and handles appointment booking
+ *
+ * @param {Object} ele - Doctor data object containing user details and professional information
+ * @returns {JSX.Element} - Rendered doctor card component
  */
-import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+const DoctorCard = ({ ele }) => {
+  // Controls visibility of appointment booking modal
+  const [modalOpen, setModalOpen] = useState(false);
 
-// Components
-import DoctorCard from "../components/DoctorCard";
-import Footer from "../components/Footer";
-import Navbar from "../components/Navbar";
-import Loading from "../components/Loading";
-import Empty from "../components/Empty";
-
-// Redux actions
-import { setLoading } from "../redux/reducers/rootSlice";
-
-// API and Styles
-import fetchData from "../helper/apiCall";
-import "../styles/doctors.css";
-
-const Doctors = () => {
-  // State management
-  const [doctors, setDoctors] = useState([]);
-  
-  // Redux hooks
-  const dispatch = useDispatch();
-  const { loading } = useSelector((state) => state.root);
+  // Get authentication token from localStorage
+  const token = localStorage.getItem("token") || "";
 
   /**
-   * Fetches all doctors from the API
-   * Displays loading state during API call
+   * Handles opening the appointment booking modal
+   * Validates user authentication before allowing appointment booking
    */
-  const fetchAllDoctors = async () => {
-    try {
-      dispatch(setLoading(true));
-      const data = await fetchData(`/doctor/getalldoctors`);
-      setDoctors(data || []);
-    } catch (error) {
-      console.error("Error fetching doctors:", error);
-      setDoctors([]);
-    } finally {
-      dispatch(setLoading(false));
+  const handleModal = () => {
+    if (!token) {
+      toast.error("You must log in first");
+      return;
     }
+    setModalOpen(true);
   };
 
-  // Fetch doctors when component mounts
-  useEffect(() => {
-    fetchAllDoctors();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // Extract user details for cleaner rendering
+  const { user, specializations, experience, fees } = ele || {};
+  const { firstname, lastname, mobile, pic } = user || {};
+
+  // Default profile image if doctor's picture is not available
+  const defaultProfileImg =
+    "https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg";
+
+  // Format specializations for display
+  const specializationNames = specializations && specializations.length > 0
+    ? specializations.map(spec => spec.name).join(", ")
+    : "Not specified";
 
   return (
-    <>
-      <Navbar />
-      
-      {/* Conditional rendering based on loading state */}
-      {loading ? (
-        <Loading />
-      ) : (
-        <section className="container doctors" aria-labelledby="doctors-heading">
-          <h2 id="doctors-heading" className="page-heading">Our Doctors</h2>
-          
-          {/* Show doctor cards if available, otherwise show empty state */}
-          {doctors.length > 0 ? (
-            <div className="doctors-card-container" role="list">
-              {doctors.map((doctor) => (
-                <DoctorCard
-                  ele={doctor}
-                  key={doctor._id}
-                />
-              ))}
-            </div>
-          ) : (
-            <Empty message="No doctors available at the moment. Please check back later." />
-          )}
-        </section>
-      )}
-      
-      <Footer />
-    </>
+    <div className="card">
+      <div className="card-img flex-center">
+        <img
+          src={pic || defaultProfileImg}
+          alt={`Dr. ${firstname} ${lastname}'s profile`}
+        />
+      </div>
+
+      <h3 className="card-name">
+        Dr. {firstname && lastname ? `${firstname} ${lastname}` : "Unknown"}
+      </h3>
+
+      <p className="specialization">
+        <strong>Specializations: </strong>
+        {specializationNames}
+      </p>
+
+      <p className="experience">
+        <strong>Experience: </strong>
+        {experience || 0}yrs
+      </p>
+
+      <p className="fees">
+        <strong>Fees per consultation: </strong>$ {fees || 0}
+      </p>
+
+      <p className="phone">
+        <strong>Phone: </strong>
+        {mobile || "Not available"}
+      </p>
+
+      <button
+        className="btn appointment-btn"
+        onClick={handleModal}
+        aria-label="Book Appointment"
+      >
+        Book Appointment
+      </button>
+
+      {/* Conditionally render appointment booking modal */}
+      {modalOpen && <BookAppointment setModalOpen={setModalOpen} ele={ele} />}
+    </div>
   );
 };
 
-export default Doctors;
+export default DoctorCard;

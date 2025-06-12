@@ -84,3 +84,28 @@ CREATE TABLE IF NOT EXISTS Notifications (
   INDEX idx_user (userId),
   INDEX idx_isRead (isRead)
 );
+
+-- Create Specifications table
+CREATE TABLE IF NOT EXISTS Specifications (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255) NOT NULL UNIQUE,
+  isDeleted BOOLEAN DEFAULT false,
+  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_name (name),
+  INDEX idx_isDeleted (isDeleted)
+);
+
+-- Junction table for Doctor-Specification many-to-many relationship
+CREATE TABLE IF NOT EXISTS DoctorSpecifications (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  doctorId INT NOT NULL,
+  specificationId INT NOT NULL,
+  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (doctorId) REFERENCES Doctors(id) ON DELETE CASCADE,
+  FOREIGN KEY (specificationId) REFERENCES Specifications(id) ON DELETE CASCADE,
+  UNIQUE KEY unique_doctor_spec (doctorId, specificationId),
+  INDEX idx_doctor (doctorId),
+  INDEX idx_specification (specificationId)
+);

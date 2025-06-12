@@ -15,6 +15,7 @@ import Sidebar from "../components/Sidebar";
 import Users from "../components/Users";
 import Home from "../components/Home";
 import Aprofile from "../components/Aprofile";
+import AdminSpecifications from "../components/AdminSpecifications";
 
 /**
  * Dashboard component that renders different admin views based on the type prop
@@ -42,6 +43,8 @@ const Dashboard = ({ type }) => {
         return <AdminApplications />;
       case "appointments":
         return <AdminAppointments />;
+      case "specifications":
+        return <AdminSpecifications />;
       case "aprofile":
         return <Aprofile />;
       default:

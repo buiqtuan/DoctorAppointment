@@ -1,10 +1,7 @@
 /**
  * Doctor Application Form Component
- * 
- * This component allows healthcare professionals to apply to be listed as doctors
- * in the system by submitting their credentials, experience and consultation fees.
  */
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -12,6 +9,7 @@ import toast from "react-hot-toast";
 // Components
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import Loading from "../components/Loading";
 
 // Styles
 import "../styles/contact.css";
@@ -21,37 +19,83 @@ axios.defaults.baseURL = process.env.REACT_APP_SERVER_DOMAIN;
 
 const ApplyDoctor = () => {
   const navigate = useNavigate();
-  
-  /**
-   * Form state for doctor application
-   * @property {string} specialization - Medical specialty (e.g., "Cardiology", "Neurology")
-   * @property {string} experience - Years of professional experience
-   * @property {string} fees - Consultation fee in dollars
-   */
+  const dropdownRef = useRef(null);
+
   const [formDetails, setFormDetails] = useState({
-    specialization: "",
+    specializations: [],
     experience: "",
     fees: "",
   });
 
-  /**
-   * Validates form input fields
-   * @returns {boolean} True if all fields are valid, false otherwise
-   */
+  const [availableSpecifications, setAvailableSpecifications] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  // Temporary fallback data for testing
+  const fallbackSpecifications = [
+    { id: 1, name: "Cardiology" },
+    { id: 2, name: "Dermatology" },
+    { id: 3, name: "Neurology" },
+    { id: 4, name: "Orthopedics" },
+    { id: 5, name: "Pediatrics" }
+  ];
+
+  useEffect(() => {
+    fetchSpecifications();
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const fetchSpecifications = async () => {
+    try {
+      setLoading(true);
+      console.log("🔄 Fetching specifications...");
+      console.log("📍 Base URL:", axios.defaults.baseURL);
+
+      const response = await axios.get("/specification/getallspecifications");
+      console.log("✅ API Response received:", response);
+      console.log("📊 Response data:", response.data);
+
+      if (response.data && response.data.success && response.data.data) {
+        console.log("✅ Setting specifications to state:", response.data.data);
+        setAvailableSpecifications(response.data.data);
+      } else {
+        console.log("⚠️ API response format issue, using fallback data");
+        setAvailableSpecifications(fallbackSpecifications);
+        toast.error("Using fallback data - please check API");
+      }
+    } catch (error) {
+      console.error("❌ Error fetching specifications:", error);
+      console.log("🔄 Using fallback data due to API error");
+      setAvailableSpecifications(fallbackSpecifications);
+      toast.error("Failed to load from API - using sample data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const validateForm = () => {
-    // Validate specialization (required, at least 3 characters)
-    if (!formDetails.specialization || formDetails.specialization.length < 3) {
-      toast.error("Please enter a valid specialization (minimum 3 characters)");
+    if (!formDetails.specializations || formDetails.specializations.length === 0) {
+      toast.error("Please select at least one specialization");
       return false;
     }
     
-    // Validate experience (required, must be a positive number)
     if (!formDetails.experience || Number(formDetails.experience) <= 0) {
       toast.error("Please enter valid years of experience");
       return false;
     }
     
-    // Validate fees (required, must be a positive number)
     if (!formDetails.fees || Number(formDetails.fees) <= 0) {
       toast.error("Please enter valid consultation fees");
       return false;
@@ -60,10 +104,6 @@ const ApplyDoctor = () => {
     return true;
   };
 
-  /**
-   * Handles form input changes and updates state
-   * @param {Object} e - Input change event
-   */
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormDetails({
@@ -72,18 +112,48 @@ const ApplyDoctor = () => {
     });
   };
 
-  /**
-   * Submits the doctor application to the server
-   * @param {Object} e - Form submission event
-   */
+  const toggleSpecialization = (specId) => {
+    console.log("🔄 Toggling specialization:", specId);
+    const isSelected = formDetails.specializations.includes(specId);
+
+    if (isSelected) {
+      setFormDetails({
+        ...formDetails,
+        specializations: formDetails.specializations.filter(id => id !== specId),
+      });
+    } else {
+      setFormDetails({
+        ...formDetails,
+        specializations: [...formDetails.specializations, specId],
+      });
+    }
+    
+    // Close dropdown after selection
+    setIsDropdownOpen(false);
+  };
+
+  const removeSpecialization = (specId) => {
+    setFormDetails({
+      ...formDetails,
+      specializations: formDetails.specializations.filter(id => id !== specId),
+    });
+  };
+
+  const getSelectedSpecNames = () => {
+    return formDetails.specializations
+      .map((id) => {
+        const spec = availableSpecifications.find((s) => s.id === id);
+        return spec ? spec.name : "";
+      })
+      .filter(Boolean);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Validate form before submission
     if (!validateForm()) return;
     
     try {
-      // Use toast.promise to show loading, success and error states
       await toast.promise(
         axios.post(
           "/doctor/applyfordoctor",
@@ -101,12 +171,28 @@ const ApplyDoctor = () => {
         }
       );
 
-      // Redirect to home page after successful submission
       navigate("/");
     } catch (error) {
       console.error("Application submission error:", error);
     }
   };
+
+  const handleDropdownToggle = () => {
+    console.log("🔄 Toggling dropdown. Current state:", isDropdownOpen);
+    setIsDropdownOpen(!isDropdownOpen);
+  };
+
+  if (loading) {
+    return <Loading />;
+  }
+
+  const selectedSpecNames = getSelectedSpecNames();
+  console.log("🔍 Current state:", {
+    availableSpecifications,
+    selectedSpecifications: formDetails.specializations,
+    selectedSpecNames,
+    isDropdownOpen
+  });
 
   return (
     <>
@@ -116,21 +202,81 @@ const ApplyDoctor = () => {
           <h2 className="form-heading">Apply to Join Our Medical Team</h2>
           
           <form className="register-form" onSubmit={handleSubmit}>
-            {/* Specialization Field */}
+            {/* Specializations Field */}
             <div className="form-group">
-              <label htmlFor="specialization">Medical Specialization</label>
-              <input
-                type="text"
-                id="specialization"
-                name="specialization"
-                className="form-input"
-                placeholder="e.g., Cardiology, Neurology, Pediatrics"
-                value={formDetails.specialization}
-                onChange={handleInputChange}
-                required
-              />
+              <label htmlFor="specializations">Medical Specializations</label>
+
+              {/* Selected Specializations Display */}
+              <div className="selected-specializations">
+                {selectedSpecNames.length > 0 ? (
+                  selectedSpecNames.map((name, index) => {
+                    const specId = formDetails.specializations[index];
+                    return (
+                      <span key={specId} className="specialization-tag">
+                        {name}
+                        <button
+                          type="button"
+                          className="remove-spec-btn"
+                          onClick={() => removeSpecialization(specId)}
+                          aria-label={`Remove ${name}`}
+                        >
+                          ×
+                        </button>
+                      </span>
+                    );
+                  })
+                ) : (
+                  <span className="placeholder-text">
+                    No specializations selected
+                  </span>
+                )}
+              </div>
+
+              {/* Custom Dropdown */}
+              <div className="custom-dropdown" ref={dropdownRef}>
+                <button
+                  type="button"
+                  className="dropdown-button"
+                  onClick={handleDropdownToggle}
+                  aria-expanded={isDropdownOpen}
+                  aria-haspopup="listbox"
+                >
+                  Add Specialization
+                  <span className={`dropdown-arrow ${isDropdownOpen ? "open" : ""}`}>
+                    ▼
+                  </span>
+                </button>
+                
+                {isDropdownOpen && (
+                  <div className="dropdown-menu">
+                    {console.log("🎨 Rendering dropdown menu with:", availableSpecifications)}
+                    {availableSpecifications.length === 0 ? (
+                      <div className="dropdown-item" style={{ color: "#999", cursor: "default" }}>
+                        Loading specifications...
+                      </div>
+                    ) : (
+                      availableSpecifications.map((spec) => {
+                        const isSelected = formDetails.specializations.includes(spec.id);
+                        console.log(`🎯 Rendering spec: ${spec.name} (ID: ${spec.id}, Selected: ${isSelected})`);
+                        return (
+                          <button
+                            key={spec.id}
+                            type="button"
+                            className={`dropdown-item ${isSelected ? "selected" : ""}`}
+                            onClick={() => toggleSpecialization(spec.id)}
+                            disabled={isSelected}
+                          >
+                            {spec.name}
+                            {isSelected && <span className="checkmark">✓</span>}
+                          </button>
+                        );
+                      })
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
-            
+
             {/* Experience Field */}
             <div className="form-group">
               <label htmlFor="experience">Years of Experience</label>
@@ -146,7 +292,7 @@ const ApplyDoctor = () => {
                 required
               />
             </div>
-            
+
             {/* Fees Field */}
             <div className="form-group">
               <label htmlFor="fees">Consultation Fee ($)</label>
@@ -157,12 +303,13 @@ const ApplyDoctor = () => {
                 className="form-input"
                 placeholder="Your consultation fee in USD"
                 min="0"
+                step="0.01"
                 value={formDetails.fees}
                 onChange={handleInputChange}
                 required
               />
             </div>
-            
+
             {/* Submit Button */}
             <button type="submit" className="btn form-btn">
               Submit Application

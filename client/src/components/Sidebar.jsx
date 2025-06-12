@@ -6,6 +6,7 @@ import {
   FaUserMd,
   FaUsers,
   FaEnvelope,
+  FaCogs,
 } from "react-icons/fa";
 import { MdLogout } from "react-icons/md";
 import { NavLink, useNavigate } from "react-router-dom";
@@ -54,6 +55,11 @@ const Sidebar = () => {
       icon: <FaEnvelope title="Doctor Applications" />,
     },
     {
+      name: "Specifications",
+      path: "/dashboard/specifications",
+      icon: <FaCogs />,
+    }, // New line
+    {
       name: "Profile",
       path: "/dashboard/aprofile",
       icon: <FaUser title="Admin Profile" />,
@@ -83,10 +89,10 @@ const Sidebar = () => {
             </li>
           ))}
         </ul>
-        
+
         {/* Logout button */}
-        <div 
-          className="logout-container" 
+        <div
+          className="logout-container"
           onClick={handleLogout}
           role="button"
           aria-label="Logout"

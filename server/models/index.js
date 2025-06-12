@@ -39,6 +39,23 @@ if (db.User && db.Doctor) {
   });
 }
 
+if (db.Doctor && db.Specification && db.DoctorSpecification) {
+  // Many-to-many relationship between Doctor and Specification
+  db.Doctor.belongsToMany(db.Specification, {
+    through: db.DoctorSpecification,
+    foreignKey: 'doctorId',
+    otherKey: 'specificationId',
+    as: 'specializations'
+  });
+  
+  db.Specification.belongsToMany(db.Doctor, {
+    through: db.DoctorSpecification,
+    foreignKey: 'specificationId',
+    otherKey: 'doctorId',
+    as: 'doctors'
+  });
+}
+
 if (db.User && db.Appointment) {
   db.User.hasMany(db.Appointment, { 
     foreignKey: 'userId', 
