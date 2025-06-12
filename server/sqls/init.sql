@@ -85,6 +85,7 @@ CREATE TABLE IF NOT EXISTS Notifications (
   INDEX idx_isRead (isRead)
 );
 
+-- 12062025
 -- Create Specifications table
 CREATE TABLE IF NOT EXISTS Specifications (
   id INT AUTO_INCREMENT PRIMARY KEY,

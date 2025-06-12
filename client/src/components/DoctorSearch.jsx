@@ -40,8 +40,8 @@ const DoctorSearch = ({ onSearch, onReset }) => {
         setAvailableSpecifications(response.data.data);
       }
     } catch (error) {
-      console.error("Error fetching specifications:", error);
-      toast.error("Failed to load specifications");
+      console.error("Lỗi khi tải chuyên khoa:", error);
+      toast.error("Không thể tải danh sách chuyên khoa");
     }
   };
 

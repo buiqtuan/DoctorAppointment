@@ -29,13 +29,7 @@ const AboutUs = () => {
         <div className="hero-content">
           <p>
             Đoạn text để giới thiệu.
-            Lorem, ipsum dolor sit amet consectetur adipisicing elit.
-            Quibusdam tenetur doloremque molestias repellat minus asperiores
-            in aperiam dolor, quaerat praesentium. Lorem ipsum dolor sit amet
-            consectetur adipisicing elit. Voluptatibus, repudiandae! Lorem
-            ipsum dolor sit amet consectetur adipisicing elit. Provident
-            quibusdam doloremque ex? Officia atque ab dolore? Tempore totam
-            non ea!
+            Bệnh Viện.
           </p>
         </div>
       </div>

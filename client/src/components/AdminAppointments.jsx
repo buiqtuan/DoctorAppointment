@@ -113,7 +113,7 @@ const AdminAppointments = () => {
           disabled={appointment?.status === "Completed"}
           onClick={() => markAppointmentComplete(appointment)}
         >
-          Complete
+          Hoàn thành
         </button>
       </td>
     </tr>
@@ -131,20 +131,20 @@ const AdminAppointments = () => {
               <table>
                 <thead>
                   <tr>
-                    <th>S.No</th>
-                    <th>Doctor</th>
-                    <th>P Name</th>
-                    <th>P Age</th>
-                    <th>P Gender</th>
-                    <th>P Mobile No.</th>
-                    <th>P bloodGroup</th>
-                    <th>P Family Diseases</th>
-                    <th>Appointment Date</th>
-                    <th>Appointment Time</th>
-                    <th>Booking Date</th>
-                    <th>Booking Time</th>
-                    <th>Status</th>
-                    <th>Action</th>
+                    <th>STT</th>
+                    <th>Bác sĩ</th>
+                    <th>Tên bệnh nhân</th>
+                    <th>Tuổi</th>
+                    <th>Giới tính</th>
+                    <th>Số điện thoại</th>
+                    <th>Nhóm máu</th>
+                    <th>Bệnh lý gia đình</th>
+                    <th>Ngày hẹn</th>
+                    <th>Giờ hẹn</th>
+                    <th>Ngày đặt</th>
+                    <th>Giờ đặt</th>
+                    <th>Trạng thái</th>
+                    <th>Hành động</th>
                   </tr>
                 </thead>
                 <tbody>

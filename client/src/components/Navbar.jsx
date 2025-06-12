@@ -122,13 +122,13 @@ const Navbar = () => {
       <nav className={menuOpen ? "nav-active" : ""}>
         {/* Logo */}
         <h2 className="nav-logo">
-          <NavLink to="/">Doctor's Appointment</NavLink>
+          <NavLink to="/">Đặt lịch khám bệnh</NavLink>
         </h2>
         
         {/* Navigation links */}
         <ul className="nav-links">
           <li>
-            <NavLink to="/">Home</NavLink>
+            <NavLink to="/">Trang chủ</NavLink>
           </li>
           {renderRoleBasedLinks()}
         </ul>

@@ -177,7 +177,7 @@ function DoctorApply() {
   return (
     <section className="apply-doctor-section flex-center">
       <div className="apply-doctor-container flex-center">
-        <h2 className="form-heading">Apply For Doctor</h2>
+        <h2 className="form-heading">Đăng ký bác sĩ</h2>
         {renderApplicationForm()}
       </div>
     </section>

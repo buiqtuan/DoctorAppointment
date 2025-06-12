@@ -149,7 +149,7 @@ const OTP = () => {
           // Auth flow container
           <div className="w-80 flex flex-col gap-4 rounded-lg p-4 bg-white/10 backdrop-blur-sm shadow-lg">
             <h1 className="text-center leading-normal text-white font-medium text-3xl mb-6">
-              Welcome to <br /> Doctor's Appointment
+              Welcome to <br /> Đặt lịch khám bệnh
             </h1>
             
             {showOTP ? (

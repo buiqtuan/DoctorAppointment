@@ -122,9 +122,10 @@ const BookAppointment = ({ setModalOpen, ele }) => {
           }
         ),
         {
-          success: "Appointment booked successfully",
-          error: "Unable to book appointment",
-          loading: "Booking appointment...",
+          success: "Đặt cuộc hẹn thành công",
+          pending: "Đang đặt cuộc hẹn...",
+          error: "Không thể đặt cuộc hẹn",
+          loading: "Đang đặt cuộc hẹn...",
         }
       );
       
@@ -188,10 +189,10 @@ const BookAppointment = ({ setModalOpen, ele }) => {
         onChange={inputChange}
         required
       >
-        <option value="">Select Gender</option>
-        <option value="male">Male</option>
-        <option value="female">Female</option>
-        <option value="other">Other</option>
+        <option value="">Chọn giới tính</option>
+        <option value="male">Nam</option>
+        <option value="female">Nữ</option>
+        <option value="other">Khác</option>
       </select>
       
       <input
@@ -217,7 +218,7 @@ const BookAppointment = ({ setModalOpen, ele }) => {
         type="submit"
         className="btn form-btn"
       >
-        Book Appointment
+        Đặt cuộc hẹn
       </button>
     </form>
   );
@@ -225,7 +226,7 @@ const BookAppointment = ({ setModalOpen, ele }) => {
   return (
     <div className="modal" onClick={handleBackdropClick}>
       <div className="modal__content">
-        <h2 className="page-heading">Book Appointment</h2>
+        <h2 className="page-heading">Đặt cuộc hẹn</h2>
         <IoMdClose
           onClick={() => setModalOpen(false)}
           className="close-btn"

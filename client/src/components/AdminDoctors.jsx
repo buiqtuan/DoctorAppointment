@@ -58,7 +58,7 @@ const AdminDoctors = () => {
    */
   const deleteDoctor = async (userId) => {
     try {
-      const confirmed = window.confirm("Are you sure you want to delete this doctor?");
+      const confirmed = window.confirm("Bạn có chắc chắn muốn xóa bác sĩ này?");
       if (!confirmed) return;
       
       // Show toast notification with promise for better UX
@@ -73,9 +73,9 @@ const AdminDoctors = () => {
           }
         ),
         {
-          success: "Doctor deleted successfully",
-          error: "Unable to delete doctor",
-          loading: "Deleting doctor...",
+          success: "Xóa bác sĩ thành công",
+          error: "Không thể xóa bác sĩ",
+          loading: "Đang xóa bác sĩ...",
         }
       );
       
@@ -143,7 +143,7 @@ const AdminDoctors = () => {
           className="btn user-btn"
           onClick={() => deleteDoctor(doctor?.userId?._id)}
         >
-          Remove
+          Xóa
         </button>
       </td>
     </tr>
@@ -156,20 +156,20 @@ const AdminDoctors = () => {
   const renderFilterControls = () => (
     <div className="ayx">
       <div className="filter">
-        <label htmlFor="filter">Filter by:</label>
+        <label htmlFor="filter">Lọc theo:</label>
         <select
           id="filter"
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
         >
-          <option value="all">All</option>
-          <option value="firstname">Name</option>
-          <option value="specialization">Specialization</option>
+          <option value="all">Tất cả</option>
+          <option value="firstname">Tên</option>
+          <option value="specialization">Chuyên khoa</option>
         </select>
       </div>
 
       <div className="search">
-        <label htmlFor="search">Search:</label>
+        <label htmlFor="search">Tìm kiếm:</label>
         <input
           type="text"
           className="form-input"
@@ -195,16 +195,16 @@ const AdminDoctors = () => {
               <table>
                 <thead>
                   <tr>
-                    <th>S.No</th>
-                    <th>Pic</th>
-                    <th>First Name</th>
-                    <th>Last Name</th>
+                    <th>STT</th>
+                    <th>Ảnh</th>
+                    <th>Tên</th>
+                    <th>Họ</th>
                     <th>Email</th>
-                    <th>Mobile No.</th>
-                    <th>Experience</th>
-                    <th>Specialization</th>
-                    <th>Fees</th>
-                    <th>Remove</th>
+                    <th>Số điện thoại</th>
+                    <th>Kinh nghiệm</th>
+                    <th>Chuyên khoa</th>
+                    <th>Phí</th>
+                    <th>Xóa</th>
                   </tr>
                 </thead>
                 <tbody>

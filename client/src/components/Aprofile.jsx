@@ -104,15 +104,15 @@ function Aprofile() {
 
       // Validate form inputs
       if (!email) {
-        return toast.error("Email should not be empty");
+        return toast.error("Email không được để trống");
       } else if (firstname.length < 3) {
-        return toast.error("First name must be at least 3 characters long");
+        return toast.error("Tên phải có ít nhất 3 ký tự");
       } else if (lastname.length < 3) {
-        return toast.error("Last name must be at least 3 characters long");
+        return toast.error("Họ phải có ít nhất 3 ký tự");
       } else if (password && password.length < 5) {
-        return toast.error("Password must be at least 5 characters long");
+        return toast.error("Mật khẩu phải có ít nhất 5 ký tự");
       } else if (password !== confpassword) {
-        return toast.error("Passwords do not match");
+        return toast.error("Mật khẩu không khớp");
       }
       
       // Submit form data with toast notification
@@ -136,9 +136,9 @@ function Aprofile() {
           }
         ),
         {
-          pending: "Updating profile...",
-          success: "Profile updated successfully",
-          error: "Unable to update profile",
+          pending: "Đang cập nhật hồ sơ...",
+          success: "Cập nhật hồ sơ thành công",
+          error: "Không thể cập nhật hồ sơ",
         }
       );
 
@@ -190,9 +190,9 @@ function Aprofile() {
           id="gender"
           onChange={inputChange}
         >
-          <option value="neither">Prefer not to say</option>
-          <option value="male">Male</option>
-          <option value="female">Female</option>
+          <option value="neither">Không muốn nói</option>
+          <option value="male">Nam</option>
+          <option value="female">Nữ</option>
         </select>
       </div>
       <div className="form-same-row">

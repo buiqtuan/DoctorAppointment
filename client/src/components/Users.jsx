@@ -58,7 +58,7 @@ const Users = () => {
    */
   const deleteUser = async (userId) => {
     try {
-      const confirm = window.confirm("Are you sure you want to delete?");
+      const confirm = window.confirm("Bạn có chắc chắn muốn xóa?");
       if (confirm) {
         // Debug: Log the userId being sent
         console.log("Deleting user with ID:", userId);
@@ -74,10 +74,10 @@ const Users = () => {
             }
           ),
           {
-            pending: "Deleting in...",
-            success: "User deleted successfully",
-            error: "Unable to delete user",
-            loading: "Deleting user...",
+            pending: "Đang xóa...",
+            success: "Xóa người dùng thành công",
+            error: "Không thể xóa người dùng",
+            loading: "Đang xóa người dùng...",
           }
         );
         // Refresh the user list after deletion
@@ -118,34 +118,34 @@ const Users = () => {
           <div className="filter-search-container">
             {/* Filter dropdown */}
             <div className="filter">
-              <label htmlFor="filter">Filter by:</label>
+              <label htmlFor="filter">Lọc theo:</label>
               <select
                 id="filter"
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
-                aria-label="Filter users"
+                aria-label="Lọc người dùng"
               >
-                <option value="all">All</option>
-                <option value="firstname">Name</option>
+                <option value="all">Tất cả</option>
+                <option value="firstname">Tên</option>
               </select>
             </div>
 
             {/* Search input */}
             <div className="search">
-              <label htmlFor="search">Search:</label>
+              <label htmlFor="search">Tìm:</label>
               <input
                 type="text"
                 className="form-input"
                 id="search"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search"
-                aria-label="Search users"
+                placeholder="Tìm kiếm"
+                aria-label="Tim kiếm người dùng"
               />
             </div>
           </div>
 
-          <h3 className="home-sub-heading">All Users</h3>
+          <h3 className="home-sub-heading">Tất cả người dùng</h3>
 
           {filteredUsers.length > 0 ? (
             <div className="user-container">
@@ -153,16 +153,16 @@ const Users = () => {
               <table>
                 <thead>
                   <tr>
-                    <th>S.No</th>
-                    <th>Pic</th>
-                    <th>First Name</th>
-                    <th>Last Name</th>
+                    <th>STT</th>
+                    <th>Ảnh</th>
+                    <th>Tên</th>
+                    <th>Họ</th>
                     <th>Email</th>
-                    <th>Mobile No.</th>
-                    <th>Age</th>
-                    <th>Gender</th>
-                    <th>Is Doctor</th>
-                    <th>Remove</th>
+                    <th>Số điện thoại</th>
+                    <th>Tuổi</th>
+                    <th>Giới tính</th>
+                    <th>Chuyên khoa</th>
+                    <th>Xóa</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -173,7 +173,7 @@ const Users = () => {
                         <img
                           className="user-table-pic"
                           src={user.pic}
-                          alt={`${user.firstname}'s profile`}
+                          alt={`Ảnh đại diện của ${user.firstname}`}
                         />
                       </td>
                       <td>{user.firstname}</td>
@@ -182,14 +182,14 @@ const Users = () => {
                       <td>{user.mobile}</td>
                       <td>{user.age}</td>
                       <td>{user.gender}</td>
-                      <td>{user.isDoctor ? "Yes" : "No"}</td>
+                      <td>{user.isDoctor ? "Có" : "Không"}</td>
                       <td className="select">
                         <button
                           className="btn user-btn"
                           onClick={() => deleteUser(user.id || user._id)}
-                          aria-label={`Remove ${user.firstname}`}
+                          aria-label={`Xóa ${user.firstname}`}
                         >
-                          Remove
+                          Xóa
                         </button>
                       </td>
                     </tr>

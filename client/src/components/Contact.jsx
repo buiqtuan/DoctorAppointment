@@ -115,19 +115,19 @@ const Contact = () => {
   return (
     <section className="register-section flex-center" id="contact">
       <div className="contact-container flex-center contact">
-        <h2 className="form-heading">Contact Us</h2>
+        <h2 className="form-heading">Liên lạc với chúng tôi</h2>
         <form
           method="POST"
           action={`https://formspree.io/f/${process.env.REACT_FORMIK_SECRET}`}
           className="register-form"
           onSubmit={handleSubmit}
         >
-          {renderField("text", "name", "Enter your name")}
-          {renderField("email", "email", "Enter your email")}
-          {renderField("text", "message", "Enter your message", true)}
+          {renderField("text", "name", "Nhập tên của bạn")}
+          {renderField("email", "email", "Nhập email của bạn")}
+          {renderField("text", "message", "Nhập tin nhắn của bạn", true)}
 
           <button type="submit" className="btn form-btn">
-            Send Message
+            Gửi tin nhắn
           </button>
         </form>
       </div>

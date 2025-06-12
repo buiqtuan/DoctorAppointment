@@ -231,7 +231,7 @@ const AdminSpecifications = () => {
       ) : (
         <section className="user-section">
           {/* Title */}
-          <h3 className="home-sub-heading">All Specifications</h3>
+          <h3 className="home-sub-heading">Các chuyên khoa</h3>
 
           {/* Add Button - positioned below title, above table */}
           <div className="add-specification-container">
@@ -240,7 +240,7 @@ const AdminSpecifications = () => {
               className="btn btn-success add-specification-btn"
               aria-label="Add new specification"
             >
-              Add Specification
+              Thêm chuyên khoa
             </button>
           </div>
 
@@ -250,9 +250,9 @@ const AdminSpecifications = () => {
                 <thead>
                   <tr>
                     <th>ID</th>
-                    <th>Name of Specification</th>
-                    <th>Created Date</th>
-                    <th>Actions</th>
+                    <th>Tên chuyên khoa</th>
+                    <th>Ngày tạo</th>
+                    <th>Hành động</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -272,7 +272,7 @@ const AdminSpecifications = () => {
                           }
                           aria-label={`Delete ${specification.name}`}
                         >
-                          Delete
+                          Xóa
                         </button>
                       </td>
                     </tr>
