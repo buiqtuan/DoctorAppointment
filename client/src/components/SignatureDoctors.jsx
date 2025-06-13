@@ -354,10 +354,9 @@ const SignatureDoctors = () => {
     <section style={sectionStyle}>
       <div style={containerStyle}>
         <div style={headerStyle}>
-          <h2 style={titleStyle}>Our Signature Doctors</h2>
+          <h2 style={titleStyle}>Bác sĩ nổi bật</h2>
           <p style={subtitleStyle}>
-            Meet our most trusted and experienced doctors with the highest
-            patient satisfaction
+            Gặp gỡ các bác sĩ uy tín và giàu kinh nghiệm nhất với sự hài lòng cao nhất từ bệnh nhân
           </p>
         </div>
 
@@ -404,18 +403,18 @@ const SignatureDoctors = () => {
                       .filter(Boolean);
                     return names.length > 0
                       ? names.join(", ")
-                      : "Not specified";
+                      : "Chưa xác định";
                   }
 
-                  return "Not specified";
+                  return "Chưa xác định";
                 };
 
                 const specializationNames = getSpecializationNames();
 
                 const badges = {
-                  1: "🥇 #1 Most Booked",
-                  2: "🥈 #2 Most Booked",
-                  3: "🥉 #3 Most Booked",
+                  1: "🥇 #1 Được đặt nhiều nhất",
+                  2: "🥈 #2 Được đặt nhiều nhất",
+                  3: "🥉 #3 Được đặt nhiều nhất",
                 };
 
                 const token = localStorage.getItem("token") || "";
@@ -428,7 +427,7 @@ const SignatureDoctors = () => {
                     style={cardStyle}
                   >
                     <div style={getRankBadgeStyle(rank)}>
-                      {badges[rank] || `#${rank} Most Booked`}
+                      {badges[rank] || `#${rank} Được đặt nhiều nhất`}
                     </div>
 
                     <div
@@ -440,7 +439,7 @@ const SignatureDoctors = () => {
                     >
                       <img
                         src={pic || defaultProfileImg}
-                        alt={`Dr. ${firstname} ${lastname}'s profile`}
+                        alt={`Hồ sơ của Bác sĩ ${firstname} ${lastname}`}
                         style={{
                           width: "100px",
                           height: "100px",
@@ -460,10 +459,10 @@ const SignatureDoctors = () => {
                         textAlign: "center",
                       }}
                     >
-                      Dr.{" "}
+                      Bác sĩ{" "}
                       {firstname && lastname
                         ? `${firstname} ${lastname}`
-                        : "Unknown"}
+                        : "Chưa xác định"}
                     </h3>
 
                     <p
@@ -473,7 +472,7 @@ const SignatureDoctors = () => {
                         lineHeight: "1.4",
                       }}
                     >
-                      <strong>Specializations: </strong>
+                      <strong>Chuyên khoa: </strong>
                       {specializationNames}
                     </p>
 
@@ -484,8 +483,8 @@ const SignatureDoctors = () => {
                         lineHeight: "1.4",
                       }}
                     >
-                      <strong>Experience: </strong>
-                      {experience || 0}yrs
+                      <strong>Kinh nghiệm: </strong>
+                      {experience || 0} năm
                     </p>
 
                     <p
@@ -495,7 +494,7 @@ const SignatureDoctors = () => {
                         lineHeight: "1.4",
                       }}
                     >
-                      <strong>Fees per consultation: </strong>$ {fees || 0}
+                      <strong>Phí tư vấn: </strong>$ {fees || 0}
                     </p>
 
                     <p
@@ -509,7 +508,7 @@ const SignatureDoctors = () => {
                         textAlign: "center",
                       }}
                     >
-                      <strong>Total Appointments: </strong>
+                      <strong>Tổng số lượt đặt: </strong>
                       {appointmentCount || 0}
                     </p>
 
@@ -520,8 +519,8 @@ const SignatureDoctors = () => {
                         lineHeight: "1.4",
                       }}
                     >
-                      <strong>Phone: </strong>
-                      {mobile || "Not available"}
+                      <strong>Điện thoại: </strong>
+                      {mobile || "Không có sẵn"}
                     </p>
 
                     {/* Show book appointment button only for patients */}
@@ -540,18 +539,18 @@ const SignatureDoctors = () => {
                         }}
                         onClick={() => {
                           if (!token) {
-                            toast.error("You must log in first");
+                            toast.error("Bạn phải đăng nhập trước");
                             return;
                           }
                           if (!user || user.type !== "patient") {
-                            toast.error("Only patients can book appointments");
+                            toast.error("Chỉ bệnh nhân mới có thể đặt lịch khám");
                             return;
                           }
                           // Handle modal opening logic here
                         }}
-                        aria-label="Book Appointment"
+                        aria-label="Đặt lịch khám"
                       >
-                        Book Appointment
+                        Đặt lịch khám
                       </button>
                     )}
 
@@ -568,7 +567,7 @@ const SignatureDoctors = () => {
                           borderRadius: "5px",
                         }}
                       >
-                        Only patients can book appointments
+                        Chỉ bệnh nhân mới có thể đặt lịch khám
                       </div>
                     )}
 
@@ -590,9 +589,9 @@ const SignatureDoctors = () => {
                             textDecoration: "underline",
                           }}
                         >
-                          Login
+                          Đăng nhập
                         </Link>{" "}
-                        to book appointments
+                        để đặt lịch khám
                       </div>
                     )}
                   </div>
@@ -617,15 +616,15 @@ const SignatureDoctors = () => {
                   boxShadow: "0 5px 15px rgba(79, 172, 254, 0.3)",
                 }}
               >
-                View All Doctors
+                Xem tất cả bác sĩ
               </Link>
             </div>
           </>
         ) : (
           <div style={{ textAlign: "center", padding: "2rem" }}>
-            <p>No signature doctors available at the moment.</p>
+            <p>Hiện không có bác sĩ nổi bật nào.</p>
             <p style={{ fontSize: "14px", color: "#666" }}>
-              This could be because there are no appointments booked yet.
+              Điều này có thể do chưa có lịch hẹn nào được đặt.
             </p>
           </div>
         )}

@@ -17,13 +17,11 @@ const Hero = () => {
     <section className="hero" aria-labelledby="hero-heading">
       <div className="hero-content">
         <h1 id="hero-heading">
-          Your Health, <br />
-          Our Responsibility
+          Sức khỏa của bạn, <br />
+          Trách nhiệm của chúng tôi
         </h1>
         <p>
-          Lorem, ipsum dolor sit amet consectetur adipisicing elit. Quibusdam
-          tenetur doloremque molestias repellat minus asperiores in aperiam
-          dolor, quaerat praesentium.
+          Thông tin quảng cáo.
         </p>
       </div>
       <div className="hero-img">

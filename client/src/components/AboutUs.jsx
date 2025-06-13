@@ -13,14 +13,14 @@ import image from "../images/aboutimg.jpg";
 const AboutUs = () => {
   return (
     <section className="container">
-      <h2 className="page-heading about-heading">About Us</h2>
+      <h2 className="page-heading about-heading">Về chúng tôi</h2>
       
       <div className="about">
         {/* Left side - Image container */}
         <div className="hero-img">
           <img
             src={image}
-            alt="About our medical practice"
+            alt="Về dịch vụ y tế của chúng tôi"
             loading="lazy" // Optimize image loading
           />
         </div>
@@ -28,8 +28,10 @@ const AboutUs = () => {
         {/* Right side - Text content */}
         <div className="hero-content">
           <p>
-            Đoạn text để giới thiệu.
-            Bệnh Viện.
+            Chào mừng đến với hệ thống đặt lịch khám bệnh trực tuyến của chúng tôi.
+            Chúng tôi cam kết mang đến dịch vụ chăm sóc sức khỏe tốt nhất với đội ngũ bác sĩ 
+            chuyên nghiệp và kinh nghiệm. Hệ thống của chúng tôi giúp bạn dễ dàng đặt lịch hẹn 
+            với các bác sĩ uy tín, tiết kiệm thời gian và đảm bảo chất lượng dịch vụ y tế.
           </p>
         </div>
       </div>

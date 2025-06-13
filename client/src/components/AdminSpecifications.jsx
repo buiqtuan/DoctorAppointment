@@ -203,7 +203,7 @@ const AdminSpecifications = () => {
                 cursor: "pointer",
               }}
             >
-              Add
+              Thêm
             </button>
           </div>
         </form>

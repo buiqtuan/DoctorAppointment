@@ -12,17 +12,17 @@ const HomeCircles = () => {
     {
       id: 1,
       value: 1000,
-      label: "Satisfied\nPatients"
+      label: "Bệnh nhân"
     },
     {
       id: 2,
       value: 250,
-      label: "Verified\nDoctors"
+      label: "Bác sĩ"
     },
     {
       id: 3,
       value: 75,
-      label: "Specialist\nDoctors"
+      label: "Bác sĩ\nchuyên khoa"
     }
   ];
 

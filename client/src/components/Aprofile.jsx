@@ -161,7 +161,7 @@ function Aprofile() {
           type="text"
           name="firstname"
           className="form-input"
-          placeholder="Enter your first name"
+          placeholder="Tên"
           value={formDetails.firstname}
           onChange={inputChange}
         />
@@ -169,7 +169,7 @@ function Aprofile() {
           type="text"
           name="lastname"
           className="form-input"
-          placeholder="Enter your last name"
+          placeholder="Họ"
           value={formDetails.lastname}
           onChange={inputChange}
         />
@@ -179,7 +179,7 @@ function Aprofile() {
           type="email"
           name="email"
           className="form-input"
-          placeholder="Enter your email"
+          placeholder="Nhập email của bạn"
           value={formDetails.email}
           onChange={inputChange}
         />
@@ -200,7 +200,7 @@ function Aprofile() {
           type="text"
           name="age"
           className="form-input"
-          placeholder="Enter your age"
+          placeholder="Nhập tuổi của bạn"
           value={formDetails.age}
           onChange={inputChange}
         />
@@ -208,7 +208,7 @@ function Aprofile() {
           type="text"
           name="mobile"
           className="form-input"
-          placeholder="Enter your mobile number"
+          placeholder="Nhập số điện thoại của bạn"
           value={formDetails.mobile}
           onChange={inputChange}
         />
@@ -217,7 +217,7 @@ function Aprofile() {
         type="text"
         name="address"
         className="form-input"
-        placeholder="Enter your address"
+        placeholder="Địa chỉ"
         value={formDetails.address}
         onChange={inputChange}
         rows="2"
@@ -227,7 +227,7 @@ function Aprofile() {
           type="password"
           name="password"
           className="form-input"
-          placeholder="Enter your password"
+          placeholder="Mật khẩu"
           value={formDetails.password}
           onChange={inputChange}
         />
@@ -235,13 +235,13 @@ function Aprofile() {
           type="password"
           name="confpassword"
           className="form-input"
-          placeholder="Confirm your password"
+          placeholder="Xác nhận mật khẩu"
           value={formDetails.confpassword}
           onChange={inputChange}
         />
       </div>
       <button type="submit" className="btn form-btn">
-        Update
+        Cập nhật
       </button>
     </form>
   );
@@ -253,7 +253,7 @@ function Aprofile() {
       ) : (
         <section className="register-section flex-center">
           <div className="profile-container flex-center">
-            <h2 className="form-heading">Profile</h2>
+            <h2 className="form-heading">Thông tin cá nhân</h2>
             <img src={file} alt="profile" className="profile-pic" />
             {renderProfileForm()}
           </div>

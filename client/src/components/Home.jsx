@@ -73,9 +73,9 @@ const Home = () => {
 
   // Format data for charts
   const chartData = [
-    { name: "Users", count: stats.userCount },
-    { name: "Appointments", count: stats.appointmentCount },
-    { name: "Doctors", count: stats.doctorCount },
+    { name: "Người dùng", count: stats.userCount },
+    { name: "Cuộc hẹn", count: stats.appointmentCount },
+    { name: "Bác sĩ", count: stats.doctorCount },
   ];
 
   return (
@@ -85,14 +85,14 @@ const Home = () => {
       ) : (
         <section className="user-section">
           <div>
-            <h1>Welcome To Dashboard!</h1>
+            <h1>Chào mừng đến với Bảng điều khiển!</h1>
             
             {/* Dashboard Cards */}
             <div className="main-cards">
               {/* Users Card */}
               <div className="card">
                 <div className="card-inner">
-                  <h3 style={{ color: "white" }}>USERS</h3>
+                  <h3 style={{ color: "white" }}>NGƯỜI DÙNG</h3>
                   <FaUsers />
                 </div>
                 <h2 style={{ color: "white" }}>{stats.userCount}</h2>
@@ -101,7 +101,7 @@ const Home = () => {
               {/* Appointments Card */}
               <div className="card">
                 <div className="card-inner">
-                  <h3 style={{ color: "white" }}>APPOINTMENTS</h3>
+                  <h3 style={{ color: "white" }}>CUỘC HẸN</h3>
                   <BsFillGrid3X3GapFill className="card_icon" />
                 </div>
                 <h2 style={{ color: "white" }}>{stats.appointmentCount}</h2>
@@ -110,7 +110,7 @@ const Home = () => {
               {/* Doctors Card */}
               <div className="card">
                 <div className="card-inner">
-                  <h3 style={{ color: "white" }}>DOCTORS</h3>
+                  <h3 style={{ color: "white" }}>BÁC SĨ</h3>
                   <FaUserMd />
                 </div>
                 <h2 style={{ color: "white" }}>{stats.doctorCount}</h2>

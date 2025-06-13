@@ -125,7 +125,7 @@ const AdminAppointments = () => {
         <Loading />
       ) : (
         <section className="user-section">
-          <h3 className="home-sub-heading">All Appointments</h3>
+          <h3 className="home-sub-heading">Tất cả cuộc hẹn</h3>
           {appointments.length > 0 ? (
             <div className="user-container">
               <table>

@@ -56,10 +56,10 @@ const Navbar = () => {
       return (
         <>
           <li>
-            <NavLink className="btn" to="/login">Login</NavLink>
+            <NavLink className="btn" to="/login">Đăng nhập</NavLink>
           </li>
           <li>
-            <NavLink className="btn" to="/register">Register</NavLink>
+            <NavLink className="btn" to="/register">Đăng ký</NavLink>
           </li>
         </>
       );
@@ -69,19 +69,19 @@ const Navbar = () => {
     const commonLinks = (
       <>
         <li>
-          <NavLink to="/notifications">Notifications</NavLink>
+          <NavLink to="/notifications">Thông báo</NavLink>
         </li>
         <li>
-          <HashLink to="/#contact">Contact Us</HashLink>
+          <HashLink to="/#contact">Liên lạc với chúng tôi</HashLink>
         </li>
         <li>
-          <NavLink to="/profile">Profile</NavLink>
+          <NavLink to="/profile">Thông tin cá nhân</NavLink>
         </li>
         <li>
-          <NavLink to="/ChangePassword">Change Password</NavLink>
+          <NavLink to="/ChangePassword">Đổi mật khẩu</NavLink>
         </li>
         <li>
-          <span className="btn" onClick={handleLogout}>Logout</span>
+          <span className="btn" onClick={handleLogout}>Đăng xuất</span>
         </li>
       </>
     );
@@ -91,10 +91,10 @@ const Navbar = () => {
       return (
         <>
           <li>
-            <NavLink to="/applyfordoctor">Apply for doctor</NavLink>
+            <NavLink to="/applyfordoctor">Đăng ký bác sĩ</NavLink>
           </li>
           <li>
-            <NavLink to="/appointments">Appointments</NavLink>
+            <NavLink to="/appointments">Các cuộc hẹn</NavLink>
           </li>
           {commonLinks}
         </>
@@ -106,7 +106,7 @@ const Navbar = () => {
       return (
         <>
           <li>
-            <NavLink to="/doctors">Doctors</NavLink>
+            <NavLink to="/doctors">Bác sĩ</NavLink>
           </li>
           {commonLinks}
         </>

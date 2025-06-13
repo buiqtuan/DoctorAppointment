@@ -10,7 +10,7 @@ import { toast, Toaster } from "react-hot-toast";
 
 /**
  * OTP Authentication Component
- * 
+ *
  * Provides phone number verification using Firebase Authentication.
  * Uses a two-step process:
  * 1. Phone number input and SMS code sending
@@ -58,12 +58,12 @@ const OTP = () => {
     }
 
     setLoading(true);
-    
+
     try {
       // Setup reCAPTCHA verification
       setupRecaptchaVerifier();
       const appVerifier = window.recaptchaVerifier;
-      
+
       // Format phone number with + prefix for international format
       const formattedPhoneNumber = "+" + phoneNumber;
 
@@ -73,17 +73,17 @@ const OTP = () => {
         formattedPhoneNumber,
         appVerifier
       );
-      
+
       // Store confirmation result for later verification
       window.confirmationResult = confirmationResult;
-      
+
       // Update UI state to show OTP input form
       setShowOTP(true);
       toast.success("OTP sent successfully!");
     } catch (error) {
       console.error("Error sending OTP:", error);
       toast.error(error?.message || "Failed to send OTP. Please try again.");
-      
+
       // Reset reCAPTCHA on failure
       if (window.recaptchaVerifier) {
         window.recaptchaVerifier.clear();
@@ -106,11 +106,11 @@ const OTP = () => {
     }
 
     setLoading(true);
-    
+
     try {
       // Verify the OTP with Firebase
       const result = await window.confirmationResult.confirm(otp);
-      
+
       // Store authenticated user data
       setUser(result.user);
       toast.success("Phone number verified successfully!");
@@ -127,45 +127,43 @@ const OTP = () => {
       <div>
         {/* Toast notifications container */}
         <Toaster toastOptions={{ duration: 4000 }} />
-        
+
         {/* Hidden reCAPTCHA container */}
         <div id="recaptcha-container"></div>
-        
+
         {/* Conditional rendering based on authentication state */}
         {user ? (
           // Success state after verification
           <div className="bg-white p-8 rounded-lg shadow-md text-center">
             <h2 className="text-emerald-600 font-medium text-2xl mb-4">
-              🎉 Login Success
+              🎉 Đăng nhập thành công
             </h2>
             <p className="text-gray-700">
-              You have successfully verified your phone number
+              Bạn đã xác thực số điện thoại thành công
             </p>
-            <p className="text-gray-500 mt-2">
-              Phone: {phoneNumber}
-            </p>
+            <p className="text-gray-500 mt-2">Số điện thoại: {phoneNumber}</p>
           </div>
         ) : (
           // Auth flow container
           <div className="w-80 flex flex-col gap-4 rounded-lg p-4 bg-white/10 backdrop-blur-sm shadow-lg">
             <h1 className="text-center leading-normal text-white font-medium text-3xl mb-6">
-              Welcome to <br /> Đặt lịch khám bệnh
+              Chào mừng đến với <br /> Đặt lịch khám bệnh
             </h1>
-            
+
             {showOTP ? (
               // OTP verification form
               <>
                 <div className="bg-white text-emerald-500 w-fit mx-auto p-4 rounded-full shadow-md">
                   <BsFillShieldLockFill size={30} aria-hidden="true" />
                 </div>
-                
+
                 <label
                   htmlFor="otp"
                   className="font-bold text-xl text-white text-center"
                 >
-                  Enter your OTP
+                  Điền mã OTP
                 </label>
-                
+
                 <OtpInput
                   value={otp}
                   onChange={setOtp}
@@ -177,7 +175,7 @@ const OTP = () => {
                   inputClassName="mx-1 text-xl p-2 rounded-md text-center w-12 h-12 bg-white border-gray-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 outline-none"
                   aria-label="Enter 6-digit OTP"
                 />
-                
+
                 <button
                   onClick={handleVerifyOTP}
                   className="bg-emerald-600 hover:bg-emerald-700 transition-colors w-full flex gap-1 items-center justify-center py-2.5 text-white rounded disabled:opacity-70"
@@ -185,11 +183,15 @@ const OTP = () => {
                   aria-label="Verify OTP"
                 >
                   {loading && (
-                    <CgSpinner size={20} className="animate-spin" aria-hidden="true" />
+                    <CgSpinner
+                      size={20}
+                      className="animate-spin"
+                      aria-hidden="true"
+                    />
                   )}
-                  <span>Verify OTP</span>
+                  <span>Xác thực OTP</span>
                 </button>
-                
+
                 {/* Option to go back and change phone number */}
                 <button
                   onClick={() => {
@@ -199,7 +201,7 @@ const OTP = () => {
                   className="text-white text-sm hover:underline"
                   aria-label="Change phone number"
                 >
-                  Change phone number
+                  Đổi số điện thoại
                 </button>
               </>
             ) : (
@@ -208,14 +210,14 @@ const OTP = () => {
                 <div className="bg-white text-emerald-500 w-fit mx-auto p-4 rounded-full shadow-md">
                   <BsTelephoneFill size={30} aria-hidden="true" />
                 </div>
-                
+
                 <label
                   htmlFor="phone"
                   className="font-bold text-xl text-white text-center"
                 >
-                  Verify your phone number
+                  Xác thực số điện thoại
                 </label>
-                
+
                 <PhoneInput
                   country={"in"}
                   value={phoneNumber}
@@ -230,7 +232,7 @@ const OTP = () => {
                   inputClass="!w-full p-2.5"
                   disabled={loading}
                 />
-                
+
                 <button
                   onClick={handleSendOTP}
                   className="bg-emerald-600 hover:bg-emerald-700 transition-colors w-full flex gap-1 items-center justify-center py-2.5 text-white rounded disabled:opacity-70"
@@ -238,9 +240,13 @@ const OTP = () => {
                   aria-label="Send verification code"
                 >
                   {loading && (
-                    <CgSpinner size={20} className="animate-spin" aria-hidden="true" />
+                    <CgSpinner
+                      size={20}
+                      className="animate-spin"
+                      aria-hidden="true"
+                    />
                   )}
-                  <span>Send code via SMS</span>
+                  <span>Gửi code qua SMS</span>
                 </button>
               </>
             )}

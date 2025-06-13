@@ -189,7 +189,7 @@ const AdminDoctors = () => {
       ) : (
         <section className="user-section">
           {renderFilterControls()}
-          <h3 className="home-sub-heading">All Doctors</h3>
+          <h3 className="home-sub-heading">Tất cả bác sĩ</h3>
           {filteredDoctors.length > 0 ? (
             <div className="user-container">
               <table>

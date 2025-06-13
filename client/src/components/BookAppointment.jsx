@@ -198,7 +198,7 @@ const BookAppointment = ({ setModalOpen, ele }) => {
       <input
         type="number"
         name="number"
-        placeholder="Mobile Number"
+        placeholder="Số điện thoại"
         className="form-input"
         value={formDetails.number}
         onChange={inputChange}
@@ -207,7 +207,7 @@ const BookAppointment = ({ setModalOpen, ele }) => {
       
       <textarea
         name="familyDiseases"
-        placeholder="Family Medical History (Optional)"
+        placeholder="Tiền sử bệnh gia đình (Tùy chọn)"
         className="form-input"
         value={formDetails.familyDiseases}
         onChange={inputChange}
