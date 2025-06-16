@@ -71,9 +71,9 @@ const Navbar = () => {
         <li>
           <NavLink to="/notifications">Thông báo</NavLink>
         </li>
-        {/* <li>
+        <li>
           <HashLink to="/#contact">Liên lạc với chúng tôi</HashLink>
-        </li> */}
+        </li>
         <li>
           <NavLink to="/profile">Thông tin cá nhân</NavLink>
         </li>

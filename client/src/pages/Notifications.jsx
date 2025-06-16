@@ -171,7 +171,7 @@ const Notifications = () => {
       ) : (
         <section className="container notif-section">
           {/* Page heading */}
-          <h2 className="page-heading">Your Notifications</h2>
+          <h2 className="page-heading">Thông báo</h2>
 
           {notifications.length > 0 ? (
             <div className="notifications">
@@ -179,10 +179,10 @@ const Notifications = () => {
               <table>
                 <thead>
                   <tr>
-                    <th>S.No</th>
-                    <th>Content</th>
-                    <th>Date</th>
-                    <th>Time</th>
+                    <th>STT</th>
+                    <th>Nội dung</th>
+                    <th>Ngày</th>
+                    <th>Thời gian</th>
                   </tr>
                 </thead>
                 <tbody>

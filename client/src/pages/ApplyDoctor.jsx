@@ -12,7 +12,7 @@ import Footer from "../components/Footer";
 import Loading from "../components/Loading";
 
 // Styles
-import "../styles/contact.css";
+import "../styles/applydoctor.css";
 
 // Configure axios base URL from environment variables
 axios.defaults.baseURL = process.env.REACT_APP_SERVER_DOMAIN;
@@ -199,12 +199,12 @@ const ApplyDoctor = () => {
       <Navbar />
       <section className="register-section flex-center apply-doctor" id="contact">
         <div className="register-container flex-center contact">
-          <h2 className="form-heading">Apply to Join Our Medical Team</h2>
+          <h2 className="form-heading">Đăng ký để trở thành bác sĩ của chúng tôi</h2>
           
           <form className="register-form" onSubmit={handleSubmit}>
             {/* Specializations Field */}
             <div className="form-group">
-              <label htmlFor="specializations">Medical Specializations</label>
+              <label htmlFor="specializations">Chuyên khoa y tế</label>
 
               {/* Selected Specializations Display */}
               <div className="selected-specializations">
@@ -227,7 +227,7 @@ const ApplyDoctor = () => {
                   })
                 ) : (
                   <span className="placeholder-text">
-                    No specializations selected
+                    Chưa có chuyên khoa được chọn
                   </span>
                 )}
               </div>
@@ -241,7 +241,7 @@ const ApplyDoctor = () => {
                   aria-expanded={isDropdownOpen}
                   aria-haspopup="listbox"
                 >
-                  Add Specialization
+                  Thêm chuyên khoa
                   <span className={`dropdown-arrow ${isDropdownOpen ? "open" : ""}`}>
                     ▼
                   </span>
@@ -279,7 +279,7 @@ const ApplyDoctor = () => {
 
             {/* Experience Field */}
             <div className="form-group">
-              <label htmlFor="experience">Years of Experience</label>
+              <label htmlFor="experience">Số năm kinh nghiệm</label>
               <input
                 type="number"
                 id="experience"
@@ -295,7 +295,7 @@ const ApplyDoctor = () => {
 
             {/* Fees Field */}
             <div className="form-group">
-              <label htmlFor="fees">Consultation Fee ($)</label>
+              <label htmlFor="fees">Phí (VNĐ)</label>
               <input
                 type="number"
                 id="fees"
@@ -312,7 +312,7 @@ const ApplyDoctor = () => {
 
             {/* Submit Button */}
             <button type="submit" className="btn form-btn">
-              Submit Application
+              Đăng ký
             </button>
           </form>
         </div>

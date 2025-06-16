@@ -288,7 +288,7 @@ const acceptdoctor = async (req, res) => {
     // Create and send notification
     await Notification.create({
       userId,
-      content: `Congratulations, Your application has been accepted.`,
+      content: `Xin chúc mừng, đơn đăng ký của bạn đã được phê duyệt.`,
     });
 
     return res.status(200).json({
@@ -354,7 +354,7 @@ const rejectdoctor = async (req, res) => {
     // Create and send rejection notification
     await Notification.create({
       userId,
-      content: `Sorry, Your application has been rejected.`,
+      content: `Rất tiếc, đơn đăng ký của bạn đã bị từ chối.`,
     });
 
     return res.status(200).json({

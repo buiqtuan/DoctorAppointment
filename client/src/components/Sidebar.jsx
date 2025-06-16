@@ -30,39 +30,39 @@ const Sidebar = () => {
    */
   const sidebarItems = [
     {
-      name: "Home",
+      name: "Trang quản trị",
       path: "/dashboard/home",
-      icon: <FaHome title="Dashboard Home" />,
+      icon: <FaHome title="Trang quản trị" />,
     },
     {
-      name: "Users",
+      name: "Người dùng",
       path: "/dashboard/users",
-      icon: <FaUsers title="Manage Users" />,
+      icon: <FaUsers title="Quản lý người dùng" />,
     },
     {
-      name: "Doctors",
+      name: "Bác sĩ",
       path: "/dashboard/doctors",
-      icon: <FaUserMd title="Manage Doctors" />,
+      icon: <FaUserMd title="Quản lý bác sĩ" />,
     },
     {
-      name: "Appointments",
+      name: "Quản lý cuộc hẹn",
       path: "/dashboard/appointments",
-      icon: <FaList title="View Appointments" />,
+      icon: <FaList title="Xem cuộc hẹn" />,
     },
     {
-      name: "Applications",
+      name: "Đơn đăng ký bác sĩ",
       path: "/dashboard/applications",
-      icon: <FaEnvelope title="Doctor Applications" />,
+      icon: <FaEnvelope title="Đơn đăng ký bác sĩ" />,
     },
     {
-      name: "Specifications",
+      name: "Chuyên khoa",
       path: "/dashboard/specifications",
       icon: <FaCogs />,
     }, // New line
     {
-      name: "Profile",
+      name: "Thông tin Admin",
       path: "/dashboard/aprofile",
-      icon: <FaUser title="Admin Profile" />,
+      icon: <FaUser title="Thông tin Admin" />,
     },
   ];
 
@@ -98,7 +98,7 @@ const Sidebar = () => {
           aria-label="Logout"
         >
           <MdLogout title="Logout" />
-          <p>Logout</p>
+          <p>Đăng xuất</p>
         </div>
       </div>
     </section>

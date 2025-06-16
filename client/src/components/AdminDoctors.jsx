@@ -105,8 +105,8 @@ const AdminDoctors = () => {
           .includes(searchTerm.toLowerCase());
       } else if (filter === "firstname") {
         return (
-          doctor.userId &&
-          doctor.userId.firstname.toLowerCase().includes(searchTerm.toLowerCase())
+          doctor.user &&
+          doctor.user.firstname.toLowerCase().includes(searchTerm.toLowerCase())
         );
       }
       return true;
@@ -121,33 +121,41 @@ const AdminDoctors = () => {
    * @param {number} index - The index of the doctor in the array
    * @returns {JSX.Element} - The table row for the doctor
    */
-  const renderDoctorRow = (doctor, index) => (
-    <tr key={doctor?._id}>
-      <td>{index + 1}</td>
-      <td>
-        <img
-          className="user-table-pic"
-          src={doctor?.userId?.pic}
-          alt={doctor?.userId?.firstname}
-        />
-      </td>
-      <td>{doctor?.userId?.firstname}</td>
-      <td>{doctor?.userId?.lastname}</td>
-      <td>{doctor?.userId?.email}</td>
-      <td>{doctor?.userId?.mobile}</td>
-      <td>{doctor?.experience}</td>
-      <td>{doctor?.specialization}</td>
-      <td>{doctor?.fees}</td>
-      <td className="select">
-        <button
-          className="btn user-btn"
-          onClick={() => deleteDoctor(doctor?.userId?._id)}
-        >
-          Xóa
-        </button>
-      </td>
-    </tr>
-  );
+  const renderDoctorRow = (doctor, index) => {
+    // Create a unique key using doctor.id, doctor.userId, or fallback to index
+    const uniqueKey = doctor?.id || doctor?.userId || `doctor-${index}`;
+    
+    return (
+      <tr key={uniqueKey}>
+        <td>{index + 1}</td>
+        <td>
+          <img
+            className="user-table-pic"
+            src={doctor?.user?.pic || "https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg"}
+            alt={doctor?.user?.firstname || "Doctor"}
+            onError={(e) => {
+              e.target.src = "https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg";
+            }}
+          />
+        </td>
+        <td>{doctor?.user?.firstname || "N/A"}</td>
+        <td>{doctor?.user?.lastname || "N/A"}</td>
+        <td>{doctor?.user?.email || "N/A"}</td>
+        <td>{doctor?.user?.mobile || "N/A"}</td>
+        <td>{doctor?.experience || "N/A"}</td>
+        <td>{doctor?.specialization || "N/A"}</td>
+        <td>${doctor?.fees || "0"}</td>
+        <td className="select">
+          <button
+            className="btn user-btn"
+            onClick={() => deleteDoctor(doctor?.user?.id || doctor?.userId)}
+          >
+            Xóa
+          </button>
+        </td>
+      </tr>
+    );
+  };
 
   /**
    * Renders the filter and search controls

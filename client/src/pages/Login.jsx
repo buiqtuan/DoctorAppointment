@@ -52,22 +52,22 @@ function Login() {
     const { email, password, role } = formDetails;
     
     if (!email || !password) {
-      toast.error("Email and password are required");
+      toast.error("Email và mật khẩu bắt buộc nhập!");
       return false;
     } 
     
     if (!role) {
-      toast.error("Please select a role");
+      toast.error("Hãy chọn vai trò!");
       return false;
     } 
     
     if (role !== "Admin" && role !== "Doctor" && role !== "Patient") {
-      toast.error("Please select a valid role");
+      toast.error("Hãy chọn vai trò!");
       return false;
     } 
     
     if (password.length < 5) {
-      toast.error("Password must be at least 5 characters long");
+      toast.error("Password cần ít nhất 5 ký tự!");
       return false;
     }
     
@@ -91,9 +91,9 @@ function Login() {
       const { data } = await toast.promise(
         axios.post("/user/login", { email, password, role }),
         {
-          pending: "Logging in...",
-          success: "Login successful",
-          error: "Unable to login user",
+          pending: "Đang đăng nhập...",
+          success: "Đăng nhập thành công",
+          error: "Không thể đăng nhập",
         }
       );
       
@@ -154,7 +154,7 @@ function Login() {
               type="email"
               name="email"
               className="form-input"
-              placeholder="Enter your email"
+              placeholder="Email"
               value={formDetails.email}
               onChange={handleInputChange}
               aria-label="Email address"
@@ -165,7 +165,7 @@ function Login() {
               type="password"
               name="password"
               className="form-input"
-              placeholder="Enter your password"
+              placeholder="Mật khẩu"
               value={formDetails.password}
               onChange={handleInputChange}
               aria-label="Password"
@@ -179,10 +179,10 @@ function Login() {
               onChange={handleInputChange}
               aria-label="Select your role"
             >
-              <option value="">Select Role</option>
+              <option value="">Chọn loại</option>
               <option value="Admin">Admin</option>
-              <option value="Doctor">Doctor</option>
-              <option value="Patient">Patient</option>
+              <option value="Doctor">Bác sĩ</option>
+              <option value="Patient">Bệnh nhân</option>
             </select>
             
             {/* Submit Button */}
@@ -191,20 +191,20 @@ function Login() {
               className="btn form-btn"
               aria-label="Sign in"
             >
-              Sign In
+              Đăng nhập
             </button>
           </form>
           
           {/* Forgot Password Link */}
           <NavLink className="login-link" to={"/forgotpassword"}>
-            Forgot Password
+            Quên mật khẩu
           </NavLink>
           
           {/* Registration Link */}
           <p>
-            Not a user?{" "}
+            Chưa có tài khoản?{" "}
             <NavLink className="login-link" to={"/register"}>
-              Register
+              Đăng ký
             </NavLink>
           </p>
         </div>

@@ -98,27 +98,27 @@ function Profile() {
     const { firstname, lastname, email, password, confpassword } = formDetails;
     
     if (!email) {
-      toast.error("Email should not be empty");
+      toast.error("Email không được để trống");
       return false;
     }
     
     if (firstname.length < 3) {
-      toast.error("First name must be at least 3 characters long");
+      toast.error("Tên phải dài ít nhất 3 ký tự");
       return false;
     }
     
     if (lastname.length < 3) {
-      toast.error("Last name must be at least 3 characters long");
+      toast.error("Họ phải dài ít nhất 3 ký tự");
       return false;
     }
     
     if (password && password.length < 5) {
-      toast.error("Password must be at least 5 characters long");
+      toast.error("Mật khẩu ít nhất 5 ký tự");
       return false;
     }
     
     if (password !== confpassword) {
-      toast.error("Passwords do not match");
+      toast.error("Mật khẩu không khớp");
       return false;
     }
     
@@ -168,9 +168,9 @@ function Profile() {
           }
         ),
         {
-          pending: "Updating profile...",
-          success: "Profile updated successfully",
-          error: "Unable to update profile",
+          pending: "Đang cập nhật thông tin...",
+          success: "Thông tin cập nhật thành công",
+          error: "Không thể cập nhật thông tin",
         }
       );
 
@@ -194,7 +194,7 @@ function Profile() {
       ) : (
         <section className="register-section flex-center">
           <div className="profile-container flex-center">
-            <h2 className="form-heading">Profile</h2>
+            <h2 className="form-heading">Thông tin cá nhân</h2>
             
             {/* Profile Picture */}
             <img
@@ -214,7 +214,7 @@ function Profile() {
                   type="text"
                   name="firstname"
                   className="form-input"
-                  placeholder="Enter your first name"
+                  placeholder="Tên"
                   value={formDetails.firstname}
                   onChange={handleInputChange}
                   aria-label="First name"
@@ -223,7 +223,7 @@ function Profile() {
                   type="text"
                   name="lastname"
                   className="form-input"
-                  placeholder="Enter your last name"
+                  placeholder="Họ"
                   value={formDetails.lastname}
                   onChange={handleInputChange}
                   aria-label="Last name"
@@ -236,7 +236,7 @@ function Profile() {
                   type="email"
                   name="email"
                   className="form-input"
-                  placeholder="Enter your email"
+                  placeholder="Email"
                   value={formDetails.email}
                   onChange={handleInputChange}
                   aria-label="Email address"
@@ -249,9 +249,9 @@ function Profile() {
                   onChange={handleInputChange}
                   aria-label="Gender"
                 >
-                  <option value="neither">Prefer not to say</option>
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
+                  <option value="neither">Khác</option>
+                  <option value="male">Nam</option>
+                  <option value="female">Nữ</option>
                 </select>
               </div>
               
@@ -261,7 +261,7 @@ function Profile() {
                   type="text"
                   name="age"
                   className="form-input"
-                  placeholder="Enter your age"
+                  placeholder="Tuổi"
                   value={formDetails.age}
                   onChange={handleInputChange}
                   aria-label="Age"
@@ -270,7 +270,7 @@ function Profile() {
                   type="text"
                   name="mobile"
                   className="form-input"
-                  placeholder="Enter your mobile number"
+                  placeholder="Số điện thoại"
                   value={formDetails.mobile}
                   onChange={handleInputChange}
                   aria-label="Mobile number"
@@ -281,7 +281,7 @@ function Profile() {
               <textarea
                 name="address"
                 className="form-input"
-                placeholder="Enter your address"
+                placeholder="Địa chỉ"
                 value={formDetails.address}
                 onChange={handleInputChange}
                 rows="2"
@@ -294,7 +294,7 @@ function Profile() {
                   type="password"
                   name="password"
                   className="form-input"
-                  placeholder="Enter your password"
+                  placeholder="Mật khẩu"
                   value={formDetails.password}
                   onChange={handleInputChange}
                   aria-label="Password"
@@ -303,7 +303,7 @@ function Profile() {
                   type="password"
                   name="confpassword"
                   className="form-input"
-                  placeholder="Confirm your password"
+                  placeholder="Xác nhận mật khẩu"
                   value={formDetails.confpassword}
                   onChange={handleInputChange}
                   aria-label="Confirm password"
@@ -316,7 +316,7 @@ function Profile() {
                 className="btn form-btn"
                 aria-label="Update profile"
               >
-                Update Profile
+                Cập nhật thông tin
               </button>
             </form>
           </div>

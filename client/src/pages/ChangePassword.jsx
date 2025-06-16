@@ -177,7 +177,7 @@ function ChangePassword() {
       ) : (
         <section className="register-section flex-center" aria-labelledby="change-password-heading">
           <div className="profile-container flex-center">
-            <h2 id="change-password-heading" className="form-heading">Change Password</h2>
+            <h2 id="change-password-heading" className="form-heading">Đổi mật khẩu</h2>
             
             {/* User profile picture */}
             {profileImage && (
@@ -192,7 +192,7 @@ function ChangePassword() {
             <form onSubmit={handleSubmit} className="register-form">
               {/* Current password field */}
               <div className="form-group">
-                <label htmlFor="current-password" className="visually-hidden">Current Password</label>
+                <label htmlFor="current-password" className="visually-hidden">Mật khẩu hiện tại</label>
                 <input
                   type="password"
                   id="current-password"
@@ -208,7 +208,7 @@ function ChangePassword() {
               {/* New password fields */}
               <div className="form-same-row">
                 <div className="form-group">
-                  <label htmlFor="new-password" className="visually-hidden">New Password</label>
+                  <label htmlFor="new-password" className="visually-hidden">Mật khẩu mới</label>
                   <input
                     type="password"
                     id="new-password"
@@ -223,7 +223,7 @@ function ChangePassword() {
                 </div>
                 
                 <div className="form-group">
-                  <label htmlFor="confirm-password" className="visually-hidden">Confirm Password</label>
+                  <label htmlFor="confirm-password" className="visually-hidden">Xác nhận mật khẩu</label>
                   <input
                     type="password"
                     id="confirm-password"
@@ -240,7 +240,7 @@ function ChangePassword() {
               
               {/* Submit button */}
               <button type="submit" className="btn form-btn">
-                Update Password
+                Cập nhật mật khẩu
               </button>
             </form>
           </div>
