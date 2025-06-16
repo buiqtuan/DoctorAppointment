@@ -71,6 +71,7 @@ const doctorRouter = require("./routes/doctorRoutes");
 const appointRouter = require("./routes/appointRoutes");
 const notificationRouter = require("./routes/notificationRouter");
 const specificationRouter = require("./routes/specificationRoutes");
+const statsRouter = require("./routes/statsRoutes");
 
 // API Routes
 app.use("/api/user", userRouter);
@@ -78,6 +79,7 @@ app.use("/api/doctor", doctorRouter);
 app.use("/api/appointment", appointRouter);
 app.use("/api/notification", notificationRouter);
 app.use("/api/specification", specificationRouter);
+app.use("/api/stats", statsRouter);
 
 // Serve static files from the React build
 app.use(express.static(path.join(__dirname, "./client/build")));

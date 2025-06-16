@@ -2,6 +2,7 @@ import "../styles/doctorcard.css";
 import React, { useState } from "react";
 import BookAppointment from "./BookAppointment"; // Simplified import path
 import { toast } from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 /**
  * DoctorCard - Displays doctor information and handles appointment booking
@@ -15,6 +16,7 @@ const DoctorCard = ({ ele }) => {
 
   // Get authentication token from localStorage
   const token = localStorage.getItem("token") || "";
+  const navigate = useNavigate();
 
   /**
    * Handles opening the appointment booking modal
@@ -28,6 +30,14 @@ const DoctorCard = ({ ele }) => {
     setModalOpen(true);
   };
 
+  /**
+   * Navigates to the doctor's detailed profile page
+   */
+  const handleViewProfile = () => {
+    const doctorId = ele?.user?.id || ele?.userId || ele?.id;
+    navigate(`/doctor/${doctorId}`);
+  };
+
   // Extract user details for cleaner rendering
   const { user, specialization, experience, fees } = ele || {};
   const { firstname, lastname, mobile, pic } = user || {};
@@ -38,7 +48,7 @@ const DoctorCard = ({ ele }) => {
 
   return (
     <div className="card">
-      <div className="card-img flex-center">
+      <div className="card-img flex-center" onClick={handleViewProfile} style={{ cursor: 'pointer' }}>
         <img
           src={pic || defaultProfileImg}
           alt={`Dr. ${firstname} ${lastname}'s profile`}
@@ -46,34 +56,42 @@ const DoctorCard = ({ ele }) => {
       </div>
 
       <h3 className="card-name">
-        Dr. {firstname && lastname ? `${firstname} ${lastname}` : "Unknown"}
+        Bác sĩ {firstname && lastname ? `${firstname} ${lastname}` : "Unknown"}
       </h3>
 
       <p className="specialization">
-        <strong>Specialization: </strong>
+        <strong>Chuyên khoa: </strong>
         {specialization || "Not specified"}
       </p>
 
       <p className="experience">
-        <strong>Experience: </strong>
+        <strong>Số năm kinh nghiệm: </strong>
         {experience || 0}yrs
       </p>
 
       <p className="fees">
-        <strong>Fees per consultation: </strong>$ {fees || 0}
+        <strong>Phí: </strong>$ {fees || 0}
       </p>
 
       <p className="phone">
-        <strong>Phone: </strong>
+        <strong>Số điện thoại: </strong>
         {mobile || "Not available"}
       </p>
+
+      <button
+        className="btn view-profile-btn"
+        onClick={handleViewProfile}
+        aria-label="View Profile"
+      >
+        Xem thông tin
+      </button>
 
       <button
         className="btn appointment-btn"
         onClick={handleModal}
         aria-label="Book Appointment"
       >
-        Book Appointment
+        Đặt cuộc hẹn
       </button>
 
       {/* Conditionally render appointment booking modal */}

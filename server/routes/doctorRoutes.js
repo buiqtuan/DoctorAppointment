@@ -4,6 +4,12 @@ const auth = require("../middleware/auth");
 
 const doctorRouter = express.Router();
 
+doctorRouter.get("/getdoctor/:id", doctorController.getdoctor);
+
+doctorRouter.get("/getstats/:id", doctorController.getDoctorStats);
+
+doctorRouter.get("/getDoctorSchedule/:id", doctorController.getDoctorSchedule);
+
 doctorRouter.get("/getalldoctors", doctorController.getalldoctors);
 
 doctorRouter.get("/getnotdoctors", auth, doctorController.getnotdoctors);

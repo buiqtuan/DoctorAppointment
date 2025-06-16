@@ -1,30 +1,72 @@
-import React from "react";
+// filepath: d:\DoctorAppointment\client\src\components\HomeCircles.jsx
+import React, { useState, useEffect } from "react";
 import CountUp from "react-countup";
+import fetchData from "../helper/apiCall";
 import "../styles/homecircles.css";
 
 /**
  * HomeCircles component displays animated counter circles for key statistics
- * Shows satisfaction metrics and doctor availability information
+ * Shows real-time statistics from the database
  */
 const HomeCircles = () => {
-  // Define statistics data to avoid repetitive code
-  const statistics = [
+  const [statistics, setStatistics] = useState([
     {
       id: 1,
-      value: 1000,
+      value: 0,
       label: "Bệnh nhân"
     },
     {
       id: 2,
-      value: 250,
+      value: 0,
       label: "Bác sĩ"
     },
     {
       id: 3,
-      value: 75,
-      label: "Bác sĩ\nchuyên khoa"
+      value: 0,
+      label: "Cuộc hẹn"
     }
-  ];
+  ]);
+
+  const [loading, setLoading] = useState(true);
+
+  /**
+   * Fetches public statistics from the API
+   */
+  const fetchPublicStats = async () => {
+    try {
+      setLoading(true);
+      const response = await fetchData("/stats/public");
+      
+      if (response && response.success) {
+        setStatistics([
+          {
+            id: 1,
+            value: response.data.patientCount,
+            label: "Bệnh nhân"
+          },
+          {
+            id: 2,
+            value: response.data.doctorCount,
+            label: "Bác sĩ"
+          },
+          {
+            id: 3,
+            value: response.data.appointmentCount,
+            label: "Cuộc hẹn"
+          }
+        ]);
+      }
+    } catch (error) {
+      console.error("Error fetching public stats:", error);
+      // Keep default values if API fails
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPublicStats();
+  }, []);
 
   /**
    * Creates a counter circle with animation
@@ -59,6 +101,17 @@ const HomeCircles = () => {
       </span>
     </div>
   );
+
+  // Show loading state or placeholder while fetching data
+  if (loading) {
+    return (
+      <section className="container circles">
+        {statistics.map(stat => 
+          renderCircle(0, stat.label, stat.id)
+        )}
+      </section>
+    );
+  }
 
   return (
     <section className="container circles">

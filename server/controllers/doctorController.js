@@ -493,6 +493,321 @@ const getTopDoctors = async (req, res) => {
   }
 };
 
+/**
+ * Get detailed information about a specific doctor
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+const getdoctor = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Validate doctor ID
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: "Doctor ID is required",
+      });
+    }
+
+    // Find doctor by user ID (since the ID in the URL is the user ID)
+    const doctor = await Doctor.findOne({
+      where: { userId: id },
+      include: [
+        {
+          model: User,
+          as: "user",
+          attributes: { exclude: ["password"] }, // Exclude password field
+        },
+        {
+          model: Specification,
+          as: "specializations",
+          through: { attributes: [] }, // Exclude junction table attributes
+          where: { isDeleted: false },
+          required: false,
+        },
+      ],
+    });
+
+    if (!doctor) {
+      return res.status(404).json({
+        success: false,
+        message: "Doctor not found",
+      });
+    }
+
+    // Check if doctor is approved
+    if (!doctor.isDoctor) {
+      return res.status(403).json({
+        success: false,
+        message: "Doctor is not approved yet",
+      });
+    }
+
+    // Format specializations
+    const specializationNames = doctor.specializations && doctor.specializations.length > 0
+      ? doctor.specializations.map(spec => spec.name).join(", ")
+      : doctor.specialization || "Not specified";
+
+    // Structure the response data
+    const doctorData = {
+      id: doctor.id,
+      userId: doctor.userId,
+      user: doctor.user,
+      specializations: doctor.specializations,
+      specialization: specializationNames, // formatted specializations
+      experience: doctor.experience,
+      fees: doctor.fees,
+      timing: doctor.timing || "Not specified",
+      isDoctor: doctor.isDoctor,
+      createdAt: doctor.createdAt,
+      updatedAt: doctor.updatedAt,
+    };
+
+    return res.status(200).json({
+      success: true,
+      message: "Doctor details retrieved successfully",
+      data: doctorData,
+    });
+
+  } catch (error) {
+    console.error("Error in getdoctor:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * Get statistics for a specific doctor
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+const getDoctorStats = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Validate doctor ID
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: "Doctor ID is required",
+      });
+    }
+
+    // Check if doctor exists (by user ID)
+    const doctor = await Doctor.findOne({ where: { userId: id } });
+    if (!doctor) {
+      return res.status(404).json({
+        success: false,
+        message: "Doctor not found",
+      });
+    }
+
+    // Get total appointments for this doctor (using user ID as doctorId in appointments)
+    const totalAppointments = await Appointment.count({
+      where: { doctorId: id },
+    });
+
+    // Get completed appointments
+    const completedAppointments = await Appointment.count({
+      where: { 
+        doctorId: id,
+        status: "Completed" 
+      },
+    });
+
+    // Get pending appointments
+    const pendingAppointments = await Appointment.count({
+      where: {
+        doctorId: id,
+        status: "Pending",
+      },
+    });
+
+    // Get confirmed appointments
+    const confirmedAppointments = await Appointment.count({
+      where: {
+        doctorId: id,
+        status: "Confirmed",
+      },
+    });
+
+    // Get cancelled appointments
+    const cancelledAppointments = await Appointment.count({
+      where: {
+        doctorId: id,
+        status: "Cancelled",
+      },
+    });
+
+    // Calculate average rating (mock calculation for now)
+    const mockRating = Math.min(4.0 + (completedAppointments * 0.1), 5.0);
+    const rating = Math.round(mockRating * 10) / 10; // Round to 1 decimal place
+
+    // Get recent appointments for additional insights
+    const recentAppointments = await Appointment.findAll({
+      where: { doctorId: id },
+      include: [
+        {
+          model: User,
+          as: "patient",
+          attributes: ["firstname", "lastname"],
+        },
+      ],
+      order: [["createdAt", "DESC"]],
+      limit: 5,
+      attributes: ["date", "startTime", "endTime", "status", "createdAt"],
+    });
+
+    // Calculate completion rate
+    const completionRate = totalAppointments > 0 
+      ? Math.round((completedAppointments / totalAppointments) * 100) 
+      : 0;
+
+    // Get appointments by month for the current year (for charts/analytics)
+    const currentYear = new Date().getFullYear();
+    const startOfYear = new Date(`${currentYear}-01-01`);
+    const endOfYear = new Date(`${currentYear + 1}-01-01`);
+
+    const appointmentsByMonth = await Appointment.findAll({
+      where: {
+        doctorId: id,
+        createdAt: {
+          [Op.gte]: startOfYear,
+          [Op.lt]: endOfYear,
+        },
+      },
+      attributes: [
+        [sequelize.fn('MONTH', sequelize.col('createdAt')), 'month'],
+        [sequelize.fn('COUNT', sequelize.col('id')), 'count'],
+      ],
+      group: [sequelize.fn('MONTH', sequelize.col('createdAt'))],
+      order: [[sequelize.fn('MONTH', sequelize.col('createdAt')), 'ASC']],
+      raw: true,
+    });
+
+    // Create monthly data array (12 months)
+    const monthlyData = Array.from({ length: 12 }, (_, index) => {
+      const monthData = appointmentsByMonth.find(item => parseInt(item.month) === index + 1);
+      return {
+        month: index + 1,
+        count: monthData ? parseInt(monthData.count) : 0,
+      };
+    });
+
+    // Structure the response
+    const statsData = {
+      totalAppointments,
+      completedAppointments,
+      pendingAppointments,
+      confirmedAppointments,
+      cancelledAppointments,
+      rating,
+      completionRate,
+      recentAppointments,
+      monthlyAppointments: monthlyData,
+      lastUpdated: new Date(),
+    };
+
+    return res.status(200).json({
+      success: true,
+      message: "Doctor statistics retrieved successfully",
+      data: statsData,
+    });
+
+  } catch (error) {
+    console.error("Error in getDoctorStats:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * Get doctor's appointment schedule for a specific date range
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+const getDoctorSchedule = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { startDate, endDate } = req.query;
+
+    // Validate doctor ID
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: "Doctor ID is required",
+      });
+    }
+
+    // Set default date range if not provided (next 7 days)
+    const start = startDate ? new Date(startDate) : new Date();
+    const end = endDate ? new Date(endDate) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+    // Get appointments for the date range
+    const appointments = await Appointment.findAll({
+      where: {
+        doctorId: id,
+        date: {
+          [Op.gte]: start.toISOString().split('T')[0],
+          [Op.lte]: end.toISOString().split('T')[0],
+        },
+      },
+      include: [
+        {
+          model: User,
+          as: "patient",
+          attributes: ["firstname", "lastname", "email", "mobile"],
+        },
+      ],
+      order: [["date", "ASC"], ["startTime", "ASC"]],
+    });
+
+    // Group appointments by date
+    const scheduleByDate = appointments.reduce((acc, appointment) => {
+      const date = appointment.date;
+      if (!acc[date]) {
+        acc[date] = [];
+      }
+      acc[date].push({
+        id: appointment.id,
+        startTime: appointment.startTime,
+        endTime: appointment.endTime,
+        status: appointment.status,
+        patient: appointment.patient,
+        createdAt: appointment.createdAt,
+      });
+      return acc;
+    }, {});
+
+    return res.status(200).json({
+      success: true,
+      message: "Doctor schedule retrieved successfully",
+      data: {
+        doctorId: id,
+        startDate: start.toISOString().split('T')[0],
+        endDate: end.toISOString().split('T')[0],
+        schedule: scheduleByDate,
+        totalAppointments: appointments.length,
+      },
+    });
+
+  } catch (error) {
+    console.error("Error in getDoctorSchedule:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   getalldoctors,
   getnotdoctors,
@@ -502,4 +817,7 @@ module.exports = {
   rejectdoctor,
   searchDoctors,
   getTopDoctors,
+  getdoctor,
+  getDoctorStats,
+  getDoctorSchedule
 };

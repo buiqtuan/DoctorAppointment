@@ -108,6 +108,7 @@ const bookappointment = async (req, res) => {
       endTime: endTime,
       time: timeRange, // Store the formatted time range for display
       age: req.body.age || user.age,
+      email: req.body.email || user.email,
       gender: req.body.gender || user.gender,
       bloodGroup: req.body.bloodGroup || user.bloodGroup,
       number: req.body.number || user.mobile,

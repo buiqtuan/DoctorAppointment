@@ -20,6 +20,7 @@ const Change = lazy(() => import("./pages/ChangePassword"));
 const Notifications = lazy(() => import("./pages/Notifications"));
 const ApplyDoctor = lazy(() => import("./pages/ApplyDoctor"));
 const Error = lazy(() => import("./pages/Error"));
+const DoctorProfile = lazy(() => import("./pages/DoctorProfile"));
 
 /**
  * Main App component that handles routing and authentication states
@@ -43,7 +44,7 @@ function App() {
           <Route path="/resetpassword/:id/:token" element={<ResetPassword />} />
           <Route path="/" element={<Home />} />
           <Route path="/doctors" element={<Doctors />} />
-          
+          <Route path="/doctor/:doctorId" element={<Suspense fallback={<Loading />}><DoctorProfile /></Suspense>} />
           {/* Public route with middleware */}
           <Route
             path="/register"
