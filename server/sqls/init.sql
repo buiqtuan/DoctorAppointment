@@ -50,26 +50,55 @@ CREATE TABLE IF NOT EXISTS Doctors (
 );
 
 -- Appointments table
-CREATE TABLE IF NOT EXISTS Appointments (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  userId INT NOT NULL,
-  doctorId INT NOT NULL,
-  date DATE NOT NULL,
-  time TIME NOT NULL,
-  age INT NOT NULL,
-  bloodGroup VARCHAR(5),
-  gender ENUM('male', 'female', 'other') NOT NULL,
-  number VARCHAR(15) NOT NULL,
-  familyDiseases TEXT,
-  status VARCHAR(20) DEFAULT 'Pending',
-  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  FOREIGN KEY (userId) REFERENCES Users(id) ON DELETE CASCADE,
-  FOREIGN KEY (doctorId) REFERENCES Users(id) ON DELETE CASCADE,
-  INDEX idx_user (userId),
-  INDEX idx_doctor (doctorId),
-  INDEX idx_status (status),
-  INDEX idx_date (date)
+CREATE TABLE Appointments (
+    -- Primary key
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    
+    -- Foreign key references
+    userId INT NOT NULL,
+    doctorId INT NOT NULL,
+    
+    -- Appointment scheduling fields
+    date DATE NOT NULL,
+    startTime TIME NOT NULL,
+    endTime TIME NOT NULL,
+    
+    -- Patient information
+    age INT NOT NULL,
+    email VARCHAR(255) NULL,
+    bloodGroup VARCHAR(5) NULL,
+    gender ENUM('male', 'female', 'other') NOT NULL,
+    number VARCHAR(15) NOT NULL,
+    familyDiseases TEXT NULL,
+    
+    -- Appointment status
+    status VARCHAR(20) DEFAULT 'Pending',
+    
+    -- Timestamps
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    -- Foreign key constraints
+    CONSTRAINT fk_appointments_user 
+        FOREIGN KEY (userId) REFERENCES Users(id) 
+        ON DELETE CASCADE ON UPDATE CASCADE,
+        
+    CONSTRAINT fk_appointments_doctor 
+        FOREIGN KEY (doctorId) REFERENCES Users(id) 
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    
+    -- Indexes for better query performance
+    INDEX idx_appointments_date (date),
+    INDEX idx_appointments_doctor_date (doctorId, date),
+    INDEX idx_appointments_user_date (userId, date),
+    INDEX idx_appointments_status (status),
+    INDEX idx_appointments_time_range (startTime, endTime),
+    
+    -- Ensure end time is after start time
+    CONSTRAINT chk_time_range CHECK (endTime > startTime),
+    
+    -- Prevent overlapping appointments for the same doctor on the same date
+    UNIQUE KEY unique_doctor_time_slot (doctorId, date, startTime, endTime)
 );
 
 -- Notifications table

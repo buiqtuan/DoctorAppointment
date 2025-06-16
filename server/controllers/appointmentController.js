@@ -77,16 +77,40 @@ const bookappointment = async (req, res) => {
       return res.status(404).send("User or doctor not found");
     }
 
+    // Parse time range if provided, otherwise use individual start/end times
+    let startTime = req.body.startTime;
+    let endTime = req.body.endTime;
+    let timeRange = req.body.time;
+
+    // If time range is provided but not individual times, parse it
+    if (timeRange && (!startTime || !endTime)) {
+      const [parsedStartTime, parsedEndTime] = timeRange.split(' - ');
+      startTime = parsedStartTime;
+      endTime = parsedEndTime;
+    }
+
+    // If individual times are provided but not time range, create it
+    if (startTime && endTime && !timeRange) {
+      timeRange = `${startTime} - ${endTime}`;
+    }
+
+    // Validate that we have both start and end times
+    if (!startTime || !endTime) {
+      return res.status(400).send("Start time and end time are required");
+    }
+
     // Create the appointment
     const appointment = await Appointment.create({
       userId: req.locals,
       doctorId: req.body.doctorId,
       date: req.body.date,
-      time: req.body.time,
-      age: user.age || req.body.age,
-      gender: user.gender || req.body.gender,
-      bloodGroup: user.bloodGroup || req.body.bloodGroup,
-      number: user.mobile || req.body.number,
+      startTime: startTime,
+      endTime: endTime,
+      time: timeRange, // Store the formatted time range for display
+      age: req.body.age || user.age,
+      gender: req.body.gender || user.gender,
+      bloodGroup: req.body.bloodGroup || user.bloodGroup,
+      number: req.body.number || user.mobile,
       familyDiseases: req.body.familyDiseases || "",
       status: "Pending",
     });
@@ -96,10 +120,14 @@ const bookappointment = async (req, res) => {
       // Notification for doctor
       Notification.create({
         userId: req.body.doctorId,
-        content: `You have an appointment with ${user.firstname} ${user.lastname} on ${req.body.date} at ${req.body.time} Age: ${user.age} bloodGroup: ${user.bloodGroup} Gender: ${user.gender} Mobile Number: ${user.mobile} Family Diseases: ${user.familyDiseases}`,
+        content: `You have an appointment with ${user.firstname} ${user.lastname} on ${req.body.date} from ${startTime} to ${endTime}. Patient Details - Age: ${req.body.age || user.age}, Blood Group: ${req.body.bloodGroup || user.bloodGroup || 'Not specified'}, Gender: ${req.body.gender || user.gender}, Mobile: ${req.body.number || user.mobile}, Family Diseases: ${req.body.familyDiseases || 'None'}`,
       }),
 
-      // No need to wait for appointment creation as it's already created above
+      // Notification for patient
+      Notification.create({
+        userId: req.locals,
+        content: `Your appointment with Dr. ${req.body.doctorname} has been scheduled for ${req.body.date} from ${startTime} to ${endTime}`,
+      }),
     ]);
 
     return res.status(201).send(appointment);

@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "../styles/bookappointment.css";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { IoMdClose } from "react-icons/io";
+import { FaClock } from "react-icons/fa";
 
 /**
  * BookAppointment - Modal component for booking doctor appointments
@@ -17,17 +18,60 @@ const BookAppointment = ({ setModalOpen, ele }) => {
     date: "",
     time: "",
     age: "",
+    email: "",
     bloodGroup: "",
     gender: "",
     number: "",
     familyDiseases: "",
   });
 
+  // Time dropdown state
+  const [isTimeDropdownOpen, setIsTimeDropdownOpen] = useState(false);
+  const timeDropdownRef = useRef(null);
+
+  // Generate time slots (30-minute intervals from 8:00 to 18:00)
+  const timeSlots = [
+    "08:00 - 08:30",
+    "08:30 - 09:00",
+    "09:00 - 09:30",
+    "09:30 - 10:00",
+    "10:00 - 10:30",
+    "10:30 - 11:00",
+    "11:00 - 11:30",
+    "11:30 - 12:00",
+    "12:00 - 12:30",
+    "12:30 - 13:00",
+    "13:00 - 13:30",
+    "13:30 - 14:00",
+    "14:00 - 14:30",
+    "14:30 - 15:00",
+    "15:00 - 15:30",
+    "15:30 - 16:00",
+    "16:00 - 16:30",
+    "16:30 - 17:00",
+    "17:00 - 17:30",
+    "17:30 - 18:00",
+  ];
+
   // Prevent body scroll when modal is open
   useEffect(() => {
     document.body.style.overflow = 'hidden';
     return () => {
       document.body.style.overflow = 'unset';
+    };
+  }, []);
+
+  // Handle click outside dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (timeDropdownRef.current && !timeDropdownRef.current.contains(event.target)) {
+        setIsTimeDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
@@ -53,11 +97,33 @@ const BookAppointment = ({ setModalOpen, ele }) => {
   };
 
   /**
+   * Handles time slot selection
+   * @param {string} timeSlot - Selected time slot
+   */
+  const handleTimeSelect = (timeSlot) => {
+    setFormDetails({
+      ...formDetails,
+      time: timeSlot,
+    });
+    setIsTimeDropdownOpen(false);
+  };
+
+  /**
+   * Parses time range string and returns start and end times
+   * @param {string} timeRange - Time range in format "HH:MM - HH:MM"
+   * @returns {Object} Object with startTime and endTime
+   */
+  const parseTimeRange = (timeRange) => {
+    const [startTime, endTime] = timeRange.split(' - ');
+    return { startTime, endTime };
+  };
+
+  /**
    * Validates form fields before submission
    * @returns {boolean} True if form is valid, false otherwise
    */
   const validateForm = () => {
-    const { date, time, age, gender, number } = formDetails;
+    const { date, time, age, email, gender, number } = formDetails;
     
     if (!date) {
       toast.error("Please select an appointment date");
@@ -71,6 +137,12 @@ const BookAppointment = ({ setModalOpen, ele }) => {
     
     if (!age) {
       toast.error("Please enter your age");
+      return false;
+    }
+
+    // Validate email if provided (optional field)
+    if (email && !/^\S+@\S+\.\S+$/.test(email)) {
+      toast.error("Please enter a valid email address");
       return false;
     }
     
@@ -100,6 +172,9 @@ const BookAppointment = ({ setModalOpen, ele }) => {
     // Validate form before submission
     if (!validateForm()) return;
     
+    // Parse the time range to get start and end times
+    const { startTime, endTime } = parseTimeRange(formDetails.time);
+    
     try {
       await toast.promise(
         axios.post(
@@ -107,8 +182,10 @@ const BookAppointment = ({ setModalOpen, ele }) => {
           {
             doctorId: ele?.user?.id || ele?.userId,
             date: formDetails.date,
-            time: formDetails.time,
+            startTime: startTime,
+            endTime: endTime,
             age: formDetails.age,
+            email: formDetails.email || null,
             bloodGroup: formDetails.bloodGroup,
             gender: formDetails.gender,
             number: formDetails.number,
@@ -152,14 +229,34 @@ const BookAppointment = ({ setModalOpen, ele }) => {
         required
       />
       
-      <input
-        type="time"
-        name="time"
-        className="form-input"
-        value={formDetails.time}
-        onChange={inputChange}
-        required
-      />
+      {/* Custom Time Dropdown */}
+      <div className="time-dropdown-container" ref={timeDropdownRef}>
+        <div
+          className="time-dropdown-button form-input"
+          onClick={() => setIsTimeDropdownOpen(!isTimeDropdownOpen)}
+        >
+          <span className={formDetails.time ? "selected-time" : "placeholder-time"}>
+            {formDetails.time || "Select appointment time"}
+          </span>
+          <FaClock className={`time-icon ${isTimeDropdownOpen ? "open" : ""}`} />
+        </div>
+        
+        {isTimeDropdownOpen && (
+          <div className="time-dropdown-menu">
+            {timeSlots.map((slot) => (
+              <button
+                key={slot}
+                type="button"
+                className={`time-dropdown-item ${formDetails.time === slot ? "selected" : ""}`}
+                onClick={() => handleTimeSelect(slot)}
+              >
+                {slot}
+                {formDetails.time === slot && <span className="checkmark">✓</span>}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
       
       <input
         type="number"
@@ -171,6 +268,15 @@ const BookAppointment = ({ setModalOpen, ele }) => {
         min="1"
         max="120"
         required
+      />
+
+      <input
+        type="email"
+        name="email"
+        placeholder="Email (Optional)"
+        className="form-input"
+        value={formDetails.email}
+        onChange={inputChange}
       />
       
       <input

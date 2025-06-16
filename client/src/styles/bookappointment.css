@@ -133,6 +133,86 @@ textarea.form-input {
   min-height: 100px;
 }
 
+/* Time Dropdown Styles */
+.time-dropdown-container {
+  position: relative;
+  width: 100%;
+}
+
+.time-dropdown-button {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.time-dropdown-button:hover {
+  border-color: rgba(255, 255, 255, 0.8);
+}
+
+.selected-time {
+  color: #333;
+}
+
+.placeholder-time {
+  color: #666;
+}
+
+.time-icon {
+  color: #666;
+  transition: transform 0.3s ease;
+}
+
+.time-icon.open {
+  transform: rotate(180deg);
+}
+
+.time-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1001;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.time-dropdown-item {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background-color 0.2s ease;
+  font-size: 1rem;
+  color: #333;
+}
+
+.time-dropdown-item:hover:not(.selected) {
+  background-color: #f8f9fa;
+}
+
+.time-dropdown-item.selected {
+  background-color: #e3f2fd;
+  color: #1976d2;
+  font-weight: 500;
+}
+
+.time-dropdown-item .checkmark {
+  color: #4caf50;
+  font-weight: bold;
+}
+
 .form-btn {
   background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
   color: white;
@@ -178,6 +258,10 @@ textarea.form-input {
     padding: 1rem 1.5rem;
     font-size: 1rem;
   }
+  
+  .time-dropdown-menu {
+    max-height: 150px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -196,6 +280,11 @@ textarea.form-input {
   
   .register-form {
     gap: 1.2rem;
+  }
+  
+  .time-dropdown-item {
+    padding: 0.6rem 0.8rem;
+    font-size: 0.9rem;
   }
 }
 
@@ -216,4 +305,23 @@ textarea.form-input {
 
 .modal__content::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.5);
+}
+
+/* Scrollbar styling for time dropdown */
+.time-dropdown-menu::-webkit-scrollbar {
+  width: 6px;
+}
+
+.time-dropdown-menu::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.time-dropdown-menu::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.time-dropdown-menu::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }

@@ -41,8 +41,13 @@ module.exports = (sequelize) => {
       type: DataTypes.DATEONLY,
       allowNull: false
     },
-    // Appointment time
-    time: {
+    // Appointment start time
+    startTime: {
+      type: DataTypes.TIME,
+      allowNull: false
+    },
+    // Appointment end time
+    endTime: {
       type: DataTypes.TIME,
       allowNull: false
     },
@@ -50,6 +55,15 @@ module.exports = (sequelize) => {
     age: {
       type: DataTypes.INTEGER,
       allowNull: false
+    },
+    email: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+      validate: {
+        isEmail: {
+          msg: 'Must be a valid email address'
+        }
+      }
     },
     // Patient blood group (optional)
     bloodGroup: {
@@ -83,8 +97,21 @@ module.exports = (sequelize) => {
     // }
   }, {
     // Enable timestamps (createdAt, updatedAt)
-    timestamps: true
+    timestamps: true,
+    
+    // Add instance methods
+    instanceMethods: {
+      // Virtual method to get time range as string
+      getTimeRange() {
+        return `${this.startTime} - ${this.endTime}`;
+      }
+    }
   });
+
+  // Add virtual field for time range display
+  Appointment.prototype.getTimeRange = function() {
+    return `${this.startTime} - ${this.endTime}`;
+  };
 
   // Define associations
   Appointment.associate = (models) => {
