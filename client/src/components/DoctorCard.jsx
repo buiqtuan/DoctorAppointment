@@ -66,11 +66,11 @@ const DoctorCard = ({ ele }) => {
 
       <p className="experience">
         <strong>Số năm kinh nghiệm: </strong>
-        {experience || 0}yrs
+        {experience || 0} năm
       </p>
 
       <p className="fees">
-        <strong>Phí: </strong>$ {fees || 0}
+        <strong>Phí: </strong> (VNĐ) {fees || 0}
       </p>
 
       <p className="phone">

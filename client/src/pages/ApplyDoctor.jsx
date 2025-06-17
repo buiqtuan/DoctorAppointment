@@ -252,7 +252,7 @@ const ApplyDoctor = () => {
                     {console.log("🎨 Rendering dropdown menu with:", availableSpecifications)}
                     {availableSpecifications.length === 0 ? (
                       <div className="dropdown-item" style={{ color: "#999", cursor: "default" }}>
-                        Loading specifications...
+                        Đang tải chuyên khoa...
                       </div>
                     ) : (
                       availableSpecifications.map((spec) => {
