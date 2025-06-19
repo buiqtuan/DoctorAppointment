@@ -17,12 +17,12 @@ import { NavLink } from "react-router-dom";
 const Footer = () => {
   // Navigation links configuration for easy management and updates
   const navLinks = [
-    { path: "/", label: "Home" },
-    { path: "/doctors", label: "Doctors" },
-    { path: "/appointments", label: "Appointments" },
-    { path: "/notifications", label: "Notifications" },
-    { path: "/#contact", label: "Contact Us", isHashLink: true },
-    { path: "/profile", label: "Profile" }
+    { path: "/", label: "Trang chủ" },
+    { path: "/doctors", label: "Bác sĩ" },
+    { path: "/appointments", label: "Cuộc hẹn" },
+    { path: "/notifications", label: "Thông báo" },
+    { path: "/#contact", label: "Liên lạc với chúng tôi", isHashLink: true },
+    { path: "/profile", label: "Thông tin cá nhân" }
   ];
 
   // Social media links configuration
@@ -40,7 +40,7 @@ const Footer = () => {
       <div className="footer">
         {/* Navigation links section */}
         <div className="footer-links">
-          <h3>Links</h3>
+          <h3>Đường dẫn</h3>
           <ul>
             {navLinks.map((link) => (
               <li key={link.path}>
@@ -56,7 +56,7 @@ const Footer = () => {
 
         {/* Social media links section */}
         <div className="social">
-          <h3>Social links</h3>
+          <h3>Mạng xã hội</h3>
           <ul>
             {socialLinks.map((social) => (
               <li key={social.platform} className={social.platform}>
@@ -76,7 +76,7 @@ const Footer = () => {
 
       {/* Copyright section */}
       <div className="footer-bottom">
-        Copyright &copy; {currentYear}
+        Bản quyền &copy; {currentYear}
       </div>
     </footer>
   );

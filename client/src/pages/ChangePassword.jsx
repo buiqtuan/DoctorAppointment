@@ -198,7 +198,7 @@ function ChangePassword() {
                   id="current-password"
                   name="password"
                   className="form-input"
-                  placeholder="Enter your current password"
+                  placeholder="Nhập mật khẩu hiện tại"
                   value={formDetails.password}
                   onChange={handleInputChange}
                   required
@@ -214,7 +214,7 @@ function ChangePassword() {
                     id="new-password"
                     name="newpassword"
                     className="form-input"
-                    placeholder="Enter your new password"
+                    placeholder="Nhập mật khẩu mới"
                     value={formDetails.newpassword}
                     onChange={handleInputChange}
                     minLength="6"
@@ -229,7 +229,7 @@ function ChangePassword() {
                     id="confirm-password"
                     name="confnewpassword"
                     className="form-input"
-                    placeholder="Confirm your new password"
+                    placeholder="Xác nhận mật khẩu mới"
                     value={formDetails.confnewpassword}
                     onChange={handleInputChange}
                     minLength="6"
