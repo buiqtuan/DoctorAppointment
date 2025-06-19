@@ -81,14 +81,14 @@ const Doctors = () => {
       
       if (response && response.success) {
         setDoctors(response.data || []);
-        toast.success(`Found ${response.count || 0} doctors matching your criteria`);
+        toast.success(`Đã tìm thấy ${response.count || 0} bác sĩ phù hợp với tiêu chí của bạn`);
       } else {
         setDoctors([]);
-        toast.info("No doctors found matching your search criteria");
+        toast.info("Không tìm thấy bác sĩ nào phù hợp với tiêu chí tìm kiếm của bạn. Hãy thử điều chỉnh bộ lọc.");
       }
     } catch (error) {
       console.error("Error searching doctors:", error);
-      toast.error("Failed to search doctors. Please try again.");
+      toast.error("Không thể tìm kiếm bác sĩ. Vui lòng thử lại.");
       setDoctors([]);
     } finally {
       dispatch(setLoading(false));
@@ -117,7 +117,7 @@ const Doctors = () => {
           <Loading />
         ) : (
           <section className="container doctors">
-            <h2 className="page-heading">Our Doctors</h2>
+            <h2 className="page-heading">Các bác sĩ của chúng tôi</h2>
             
             {/* Search Component */}
             <DoctorSearch onSearch={handleSearch} onReset={handleResetSearch} />
@@ -125,7 +125,7 @@ const Doctors = () => {
             {/* Search Results Info */}
             {isSearchActive && (
               <div className="search-info">
-                <p>Search Results: {doctors.length} doctor{doctors.length !== 1 ? 's' : ''} found</p>
+                <p>Kết quả tìm kiếm: {doctors.length} bác sĩ được tìm thấy</p>
               </div>
             )}
             
@@ -138,8 +138,8 @@ const Doctors = () => {
             ) : (
               <Empty message={
                 isSearchActive 
-                  ? "No doctors found matching your search criteria. Try adjusting your filters."
-                  : "No doctors available at the moment. Please check back later."
+                  ? "Không tìm thấy bác sĩ nào phù hợp với tiêu chí tìm kiếm của bạn. Hãy thử điều chỉnh bộ lọc."
+                  : "Hiện tại không có bác sĩ nào. Vui lòng quay lại sau."
               } />
             )}
           </section>
