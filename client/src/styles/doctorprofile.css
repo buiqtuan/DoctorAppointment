@@ -511,3 +511,99 @@
     padding: 1.5rem;
   }
 }
+
+/* Specializations Card */
+.specializations-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.specializations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.specialization-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 10px;
+  border-left: 4px solid #667eea;
+  transition: all 0.3s ease;
+}
+
+.specialization-item:hover {
+  background: #e2e8f0;
+  transform: translateX(5px);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+}
+
+.spec-icon {
+  font-size: 1.5rem;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+.spec-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.spec-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin: 0;
+}
+
+.spec-description {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.no-specializations {
+  text-align: center;
+  padding: 2rem;
+  color: #64748b;
+  font-style: italic;
+}
+
+.no-specializations p {
+  margin: 0;
+}
+
+/* Responsive adjustments for specializations */
+@media (max-width: 768px) {
+  .specialization-item {
+    padding: 0.75rem;
+  }
+  
+  .spec-icon {
+    width: 35px;
+    height: 35px;
+    font-size: 1.25rem;
+  }
+  
+  .spec-name {
+    font-size: 0.9rem;
+  }
+  
+  .spec-description {
+    font-size: 0.8rem;
+  }
+}

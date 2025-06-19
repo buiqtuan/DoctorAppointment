@@ -122,7 +122,7 @@ const AdminApplications = () => {
    */
   const formatSpecializations = (specializations) => {
     if (!specializations || !Array.isArray(specializations) || specializations.length === 0) {
-      return "Not specified";
+      return "Không xác định";
     }
     return specializations.map(spec => spec.name).join(", ");
   };

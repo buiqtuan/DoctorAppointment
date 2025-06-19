@@ -61,7 +61,7 @@ const DoctorCard = ({ ele }) => {
 
       <p className="specialization">
         <strong>Chuyên khoa: </strong>
-        {specialization || "Not specified"}
+        {specialization || "Không xác định"}
       </p>
 
       <p className="experience">

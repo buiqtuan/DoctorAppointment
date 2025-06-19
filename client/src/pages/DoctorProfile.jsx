@@ -106,7 +106,6 @@ const DoctorProfile = () => {
    * Handles opening appointment booking modal
    */
   const handleBookAppointment = () => {
-    
     setModalOpen(true);
   };
 
@@ -160,7 +159,7 @@ const DoctorProfile = () => {
     ) {
       return specializations.map((spec) => spec.name).join(", ");
     }
-    return doctor.specialization || "Not specified";
+    return doctor.specialization || "Không xác định";
   };
 
   // Safe rating calculation with fallback
@@ -184,7 +183,7 @@ const DoctorProfile = () => {
                 />
                 <div className="doctor-status online">
                   <span className="status-indicator"></span>
-                  Available
+                  Sẵn sàng
                 </div>
               </div>
 
@@ -216,17 +215,17 @@ const DoctorProfile = () => {
                 <div className="doctor-quick-stats">
                   <div className="stat-item">
                     <span className="stat-number">{experience || 0}</span>
-                    <span className="stat-label">Years Experience</span>
+                    <span className="stat-label">Số năm kinh nghiệm</span>
                   </div>
                   <div className="stat-item">
                     <span className="stat-number">{safeTotalAppointments}</span>
-                    <span className="stat-label">Total Patients</span>
+                    <span className="stat-label">Tổng số bệnh nhân</span>
                   </div>
                   <div className="stat-item">
                     <span className="stat-number">
                       {safeCompletedAppointments}
                     </span>
-                    <span className="stat-label">Completed</span>
+                    <span className="stat-label">Đã hoàn thành</span>
                   </div>
                 </div>
               </div>
@@ -240,7 +239,7 @@ const DoctorProfile = () => {
                 </button>
                 <div className="consultation-fee">
                   <span className="fee-label">Phí tư vấn</span>
-                  <span className="fee-amount">${fees || 0}</span>
+                  <span className="fee-amount">{fees || 0} VNĐ</span>
                 </div>
               </div>
             </div>
@@ -264,12 +263,12 @@ const DoctorProfile = () => {
                   </p>
 
                   <div className="professional-info">
-                    <div className="info-row">
+                    {/* <div className="info-row">
                       <span className="info-label">Chuyên khoa:</span>
                       <span className="info-value">
                         {getSpecializationNames()}
                       </span>
-                    </div>
+                    </div> */}
                     <div className="info-row">
                       <span className="info-label">Kinh nghiệm:</span>
                       <span className="info-value">{experience || 0} năm</span>
@@ -283,10 +282,56 @@ const DoctorProfile = () => {
                     <div className="info-row">
                       <span className="info-label">Giờ làm việc:</span>
                       <span className="info-value">
-                        {timing || "Chưa xác định"}
+                        Từ T2 - T7
+                        {/* {timing || "Chưa xác định"} */}
                       </span>
                     </div>
                   </div>
+                </div>
+              </div>
+
+              {/* Specializations Card */}
+              <div className="detail-card specializations-card">
+                <h3 className="card-title">Chuyên khoa</h3>
+                <div className="specializations-content">
+                  {specializations &&
+                  Array.isArray(specializations) &&
+                  specializations.length > 0 ? (
+                    <div className="specializations-list">
+                      {specializations.map((spec, index) => (
+                        <div
+                          key={spec.id || index}
+                          className="specialization-item"
+                        >
+                          <div className="spec-icon">🏥</div>
+                          <div className="spec-details">
+                            <h4 className="spec-name">{spec.name}</h4>
+                            <p className="spec-description">
+                              Chuyên gia trong lĩnh vực{" "}
+                              {spec.name.toLowerCase()}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : doctor.specialization ? (
+                    <div className="specializations-list">
+                      <div className="specialization-item">
+                        <div className="spec-icon">🏥</div>
+                        <div className="spec-details">
+                          <h4 className="spec-name">{doctor.specialization}</h4>
+                          <p className="spec-description">
+                            Chuyên gia trong lĩnh vực{" "}
+                            {doctor.specialization.toLowerCase()}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="no-specializations">
+                      <p>Chưa có thông tin chuyên khoa</p>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -327,7 +372,7 @@ const DoctorProfile = () => {
               </div>
 
               {/* Availability */}
-              <div className="detail-card availability-card">
+              {/* <div className="detail-card availability-card">
                 <h3 className="card-title">Lịch làm việc</h3>
                 <div className="availability-content">
                   <div className="time-slots">
@@ -352,7 +397,7 @@ const DoctorProfile = () => {
                     </p>
                   </div>
                 </div>
-              </div>
+              </div> */}
 
               {/* Services */}
               <div className="detail-card services-card">

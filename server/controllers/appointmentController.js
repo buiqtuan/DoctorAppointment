@@ -138,13 +138,13 @@ const bookappointment = async (req, res) => {
       // Notification for doctor
       Notification.create({
         userId: req.body.doctorId,
-        content: `You have an appointment with ${user.firstname} ${user.lastname} on ${req.body.date} from ${startTime} to ${endTime}. Patient Details - Age: ${req.body.age || user.age}, Blood Group: ${req.body.bloodGroup || user.bloodGroup || 'Not specified'}, Gender: ${req.body.gender || user.gender}, Mobile: ${req.body.number || user.mobile}, Family Diseases: ${req.body.familyDiseases || 'None'}`,
+        content: `Cuộc hẹn của bạn với ${user.firstname} ${user.lastname} vào ngày ${req.body.date} từ ${startTime} đến ${endTime}. Chi tiết bệnh nhân - Tuổi: ${req.body.age || user.age}, Nhóm máu: ${req.body.bloodGroup || user.bloodGroup || 'Không xác định'}, Giới tính: ${req.body.gender || user.gender}, Số điện thoại: ${req.body.number || user.mobile}, Tiền sử bệnh lý: ${req.body.familyDiseases || 'Không'}`,
       }),
 
       // Notification for patient
       Notification.create({
         userId: req.locals,
-        content: `Your appointment with Dr. ${req.body.doctorname} has been scheduled for ${req.body.date} from ${startTime} to ${endTime}`,
+        content: `Cuộc hẹn của bạn với Bác sĩ ${req.body.doctorname} đã được lên lịch vào ngày ${req.body.date} từ ${startTime} đến ${endTime}`,
       }),
     ]);
 

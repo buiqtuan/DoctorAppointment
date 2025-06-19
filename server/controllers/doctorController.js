@@ -464,7 +464,7 @@ const getTopDoctors = async (req, res) => {
       const specializationNames =
         doctorData.specializations && doctorData.specializations.length > 0
           ? doctorData.specializations.map((spec) => spec.name).join(", ")
-          : doctorData.specialization || "Not specified";
+          : doctorData.specialization || "Không xác định";
 
       return {
         ...doctorData,
@@ -547,7 +547,7 @@ const getdoctor = async (req, res) => {
     // Format specializations
     const specializationNames = doctor.specializations && doctor.specializations.length > 0
       ? doctor.specializations.map(spec => spec.name).join(", ")
-      : doctor.specialization || "Not specified";
+      : doctor.specialization || "Không xác định";
 
     // Structure the response data
     const doctorData = {
@@ -558,7 +558,7 @@ const getdoctor = async (req, res) => {
       specialization: specializationNames, // formatted specializations
       experience: doctor.experience,
       fees: doctor.fees,
-      timing: doctor.timing || "Not specified",
+      timing: doctor.timing || "Không xác định",
       isDoctor: doctor.isDoctor,
       createdAt: doctor.createdAt,
       updatedAt: doctor.updatedAt,

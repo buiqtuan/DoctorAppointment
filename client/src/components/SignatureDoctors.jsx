@@ -64,17 +64,11 @@ const SignatureDoctorCard = ({ ele, rank }) => {
 
     // Then check specializations array
     if (!specializations || !Array.isArray(specializations)) {
-      console.log(
-        "❌ No specializations array, using single specialization or fallback"
-      );
-      return specialization || "Not specified";
+      return specialization || "Không xác định";
     }
 
     if (specializations.length === 0) {
-      console.log(
-        "❌ Empty specializations array, using single specialization or fallback"
-      );
-      return specialization || "Not specified";
+      return specialization || "Không xác định";
     }
 
     // Handle different data structures for array
@@ -96,7 +90,7 @@ const SignatureDoctorCard = ({ ele, rank }) => {
     console.log("✅ Extracted names from array:", names);
     return names.length > 0
       ? names.join(", ")
-      : specialization || "Not specified";
+      : specialization || "Không xác định";
   };
 
   const specializationNames = getSpecializationNames();
