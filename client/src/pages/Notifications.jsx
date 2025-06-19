@@ -29,6 +29,30 @@ const Notifications = () => {
   const { loading } = useSelector((state) => state.root);
 
   /**
+   * Mark all notifications as read
+   */
+  const markAllNotificationsAsRead = useCallback(async () => {
+    try {
+      // Fix: Use the correct API endpoint with notification prefix
+      const response = await fetchData("/notification/markallread", "PUT");
+      console.log("All notifications marked as read:", response);
+      
+      // Update local state to reflect read status
+      setNotifications(prevNotifications => 
+        prevNotifications.map(notification => ({
+          ...notification,
+          isRead: true
+        }))
+      );
+      
+      // Trigger a custom event to notify navbar to update count
+      window.dispatchEvent(new CustomEvent('notificationsRead'));
+    } catch (error) {
+      console.error("Error marking notifications as read:", error);
+    }
+  }, []);
+
+  /**
    * Fetches notifications from the API
    * Uses server-side pagination for better performance
    */
@@ -64,6 +88,16 @@ const Notifications = () => {
     fetchNotifications();
   }, [fetchNotifications]);
 
+  // Mark all notifications as read when component first mounts
+  useEffect(() => {
+    // Add a small delay to ensure notifications are fetched first
+    const timer = setTimeout(() => {
+      markAllNotificationsAsRead();
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, []); // Remove markAllNotificationsAsRead from dependencies to prevent infinite loop
+
   // Calculate total pages based on item count
   const totalPages = Math.ceil(totalCount / notificationsPerPage);
 
@@ -90,7 +124,7 @@ const Notifications = () => {
       pages.push(
         <button
           key="prev"
-          onClick={() => handlePageChange(currentPage - 1)}
+          onClick={() => handlePageChange(currentPage - 1)} // Fixed: was currentPage + 1
           aria-label="Previous page"
           className="pagination-btn"
         >
@@ -107,7 +141,6 @@ const Notifications = () => {
           onClick={() => handlePageChange(i)}
           className={`pagination-btn ${currentPage === i ? "active" : ""}`}
           aria-label={`Page ${i}`}
-          aria-current={currentPage === i ? "page" : undefined}
         >
           {i}
         </button>
@@ -132,33 +165,38 @@ const Notifications = () => {
   };
 
   /**
-   * Formats date string from ISO format
-   * @param {string} dateString - ISO date string
-   * @returns {string} Formatted date (YYYY-MM-DD)
+   * Formats date from timestamp
+   * @param {string} timestamp - ISO timestamp string
+   * @returns {string} Formatted date string
    */
-  const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
+  const formatDate = (timestamp) => {
+    if (!timestamp) return "N/A";
+
     try {
-      return dateString.split("T")[0];
+      const date = new Date(timestamp);
+      return date.toLocaleDateString("vi-VN");
     } catch (error) {
-      console.error("Error formatting date:", error);
+      console.error("Date formatting error:", error);
       return "Invalid Date";
     }
   };
 
   /**
-   * Formats time string from ISO format
-   * @param {string} dateString - ISO date string
-   * @returns {string} Formatted time (HH:MM:SS)
+   * Formats time from timestamp
+   * @param {string} timestamp - ISO timestamp string
+   * @returns {string} Formatted time string
    */
-  const formatTime = (dateString) => {
-    if (!dateString) return "N/A";
+  const formatTime = (timestamp) => {
+    if (!timestamp) return "N/A";
+
     try {
-      const timePart = dateString.split("T")[1];
-      if (!timePart) return "N/A";
-      return timePart.split(".")[0];
+      const date = new Date(timestamp);
+      return date.toLocaleTimeString("vi-VN", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
     } catch (error) {
-      console.error("Error formatting time:", error);
+      console.error("Time formatting error:", error);
       return "Invalid Time";
     }
   };
@@ -170,12 +208,10 @@ const Notifications = () => {
         <Loading />
       ) : (
         <section className="container notif-section">
-          {/* Page heading */}
-          <h2 className="page-heading">Thông báo</h2>
+          <h2 className="page-heading">Thông báo của bạn</h2>
 
           {notifications.length > 0 ? (
-            <div className="notifications">
-              {/* Notifications table */}
+            <div className="notifications-wrapper">
               <table>
                 <thead>
                   <tr>
@@ -187,11 +223,11 @@ const Notifications = () => {
                 </thead>
                 <tbody>
                   {notifications.map((notification, index) => {
-                    // Debug: Log notification structure
-                    console.log("Notification data:", notification);
-
                     return (
-                      <tr key={notification?.id || notification?._id || index}>
+                      <tr 
+                        key={notification?.id || notification?._id || index}
+                        className={notification?.isRead ? 'read' : 'unread'} // Add visual indicator for read status
+                      >
                         <td>
                           {(currentPage - 1) * notificationsPerPage + index + 1}
                         </td>

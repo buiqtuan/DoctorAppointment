@@ -17,8 +17,25 @@ const getallappointments = async (req, res) => {
 
     let appointments;
 
-    // If user is a doctor, get appointments where doctorId matches user's ID
-    if (user.dataValues.role === "Doctor" || user.isDoctor === true) {
+    // If user is Admin, get ALL appointments
+    if (user.dataValues.role === "Admin") {
+      appointments = await Appointment.findAll({
+        include: [
+          {
+            model: User,
+            as: "patient",
+            attributes: ["firstname", "lastname", "email", "mobile", "pic"],
+          },
+          {
+            model: User,
+            as: "doctor",
+            attributes: ["firstname", "lastname", "email", "mobile", "pic"],
+          },
+        ],
+        order: [["createdAt", "DESC"]],
+      });
+    } else if (user.dataValues.role === "Doctor" || user.isDoctor === true) {
+      // If user is a doctor, get appointments where doctorId matches user's ID
       appointments = await Appointment.findAll({
         where: { doctorId: req.locals },
         include: [

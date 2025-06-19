@@ -67,11 +67,11 @@ const markAllAsRead = async (req, res) => {
     
     // Update all unread notifications for the user
     await Notification.update(
-      { isRead: true },
+      { isRead: 1 },
       { 
         where: { 
           userId: userId,
-          isRead: false
+          isRead: 0
         }
       }
     );

@@ -10,4 +10,18 @@ notificationRouter.get(
   notificationController.getallnotifs
 );
 
+// Add new route to mark all notifications as read
+notificationRouter.put(
+  "/markallread",
+  auth,
+  notificationController.markAllAsRead
+);
+
+// Add route to get unread count
+notificationRouter.get(
+  "/unreadcount",
+  auth,
+  notificationController.getUnreadCount
+);
+
 module.exports = notificationRouter;

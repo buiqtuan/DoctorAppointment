@@ -31,6 +31,7 @@ const AdminAppointments = () => {
     try {
       dispatch(setLoading(true));
       const appointmentsData = await fetchData("/appointment/getallappointments");
+      console.log("📊 Appointments data:", appointmentsData); // Debug log
       setAppointments(appointmentsData);
     } catch (error) {
       toast.error("Failed to fetch appointments");
@@ -56,9 +57,9 @@ const AdminAppointments = () => {
         axios.put(
           "/appointment/completed",
           {
-            appointid: appointment?._id,
-            doctorId: appointment?.doctorId._id,
-            doctorname: `${appointment?.userId?.firstname} ${appointment?.userId?.lastname}`,
+            appointid: appointment?.id, // Use 'id' instead of '_id'
+            doctorId: appointment?.doctorId || appointment?.doctor?.id,
+            doctorname: `${appointment?.doctor?.firstname || "Doctor"} ${appointment?.doctor?.lastname || ""}`,
           },
           {
             headers: {
@@ -86,38 +87,63 @@ const AdminAppointments = () => {
    * @param {number} index - The index of the appointment in the array
    * @returns {JSX.Element} - The table row for the appointment
    */
-  const renderAppointmentRow = (appointment, index) => (
-    <tr key={appointment?._id}>
-      <td>{index + 1}</td>
-      <td>
-        {appointment?.doctorId?.firstname + " " + appointment?.doctorId?.lastname}
-      </td>
-      <td>
-        {appointment?.userId?.firstname + " " + appointment?.userId?.lastname}
-      </td>
-      <td>{appointment?.age}</td>
-      <td>{appointment?.gender}</td>
-      <td>{appointment?.number}</td>
-      <td>{appointment?.bloodGroup}</td>
-      <td>{appointment?.familyDiseases}</td>
-      <td>{appointment?.date}</td>
-      <td>{appointment?.time}</td>
-      <td>{appointment?.createdAt.split("T")[0]}</td>
-      <td>{appointment?.updatedAt.split("T")[1].split(".")[0]}</td>
-      <td>{appointment?.status}</td>
-      <td>
-        <button
-          className={`btn user-btn accept-btn ${
-            appointment?.status === "Completed" ? "disable-btn" : ""
-          }`}
-          disabled={appointment?.status === "Completed"}
-          onClick={() => markAppointmentComplete(appointment)}
-        >
-          Hoàn thành
-        </button>
-      </td>
-    </tr>
-  );
+  const renderAppointmentRow = (appointment, index) => {
+    console.log("🔍 Rendering appointment:", appointment); // Debug log
+    
+    const isCompleted = appointment?.status === "Completed";
+    
+    return (
+      <tr key={appointment?.id}>
+        <td>{index + 1}</td>
+        <td>
+          {appointment?.doctor 
+            ? `${appointment.doctor.firstname} ${appointment.doctor.lastname}`
+            : "N/A"
+          }
+        </td>
+        <td>
+          {appointment?.patient 
+            ? `${appointment.patient.firstname} ${appointment.patient.lastname}`
+            : "N/A"
+          }
+        </td>
+        <td>{appointment?.age || "N/A"}</td>
+        <td>{appointment?.gender || "N/A"}</td>
+        <td>{appointment?.number || "N/A"}</td>
+        <td>{appointment?.bloodGroup || "N/A"}</td>
+        <td>{appointment?.familyDiseases || "None"}</td>
+        <td>{appointment?.date || "N/A"}</td>
+        <td>
+          {appointment?.time || 
+           (appointment?.startTime && appointment?.endTime 
+             ? `${appointment.startTime} - ${appointment.endTime}` 
+             : "N/A")
+          }
+        </td>
+        <td>{appointment?.createdAt ? new Date(appointment.createdAt).toLocaleDateString() : "N/A"}</td>
+        <td>{appointment?.updatedAt ? new Date(appointment.updatedAt).toLocaleTimeString() : "N/A"}</td>
+        <td>
+          <span className={`status ${appointment?.status?.toLowerCase() || 'pending'}`}>
+            {appointment?.status || "Đang chờ xử lý"}
+          </span>
+        </td>
+        <td>
+          <button
+            className={`btn user-btn ${isCompleted ? "completed-btn" : "accept-btn"}`}
+            disabled={isCompleted}
+            onClick={() => !isCompleted && markAppointmentComplete(appointment)}
+            style={{
+              backgroundColor: isCompleted ? "#6c757d" : "",
+              cursor: isCompleted ? "not-allowed" : "pointer",
+              opacity: isCompleted ? 0.7 : 1
+            }}
+          >
+            {isCompleted ? "Đã hoàn thành" : "Hoàn thành"}
+          </button>
+        </td>
+      </tr>
+    );
+  };
 
   return (
     <>
@@ -126,7 +152,7 @@ const AdminAppointments = () => {
       ) : (
         <section className="user-section">
           <h3 className="home-sub-heading">Tất cả cuộc hẹn</h3>
-          {appointments.length > 0 ? (
+          {appointments && appointments.length > 0 ? (
             <div className="user-container">
               <table>
                 <thead>
@@ -148,12 +174,12 @@ const AdminAppointments = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {appointments?.map(renderAppointmentRow)}
+                  {appointments.map(renderAppointmentRow)}
                 </tbody>
               </table>
             </div>
           ) : (
-            <Empty />
+            <Empty message="No appointments found" />
           )}
         </section>
       )}

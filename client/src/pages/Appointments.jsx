@@ -3,7 +3,7 @@
  *
  * This component displays a user's appointments with pagination,
  * allowing them to view and manage their medical appointments.
- * Doctors can mark appointments as completed.
+ * Doctors can mark appointments as completed or rejected.
  */
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -49,7 +49,7 @@ const Appointments = () => {
       setAppointments(result);
     } catch (error) {
       console.error("Error fetching appointments:", error);
-      toast.error("Failed to fetch appointments. Please try again.");
+      toast.error("Không thể tải danh sách cuộc hẹn. Vui lòng thử lại.");
     } finally {
       dispatch(setLoading(false));
     }
@@ -84,7 +84,7 @@ const Appointments = () => {
           key={i}
           onClick={() => handlePageChange(i)}
           className={currentPage === i ? "active" : ""}
-          aria-label={`Page ${i}`}
+          aria-label={`Trang ${i}`}
         >
           {i}
         </button>
@@ -105,15 +105,18 @@ const Appointments = () => {
    */
   const completeAppointment = async (appointment) => {
     try {
+      const confirm = window.confirm("Bạn có chắc chắn muốn hoàn thành cuộc hẹn này?");
+      if (!confirm) return;
+
       dispatch(setLoading(true));
       await axios.put(
         "/appointment/completed",
         {
-          appointid: appointment.id || appointment._id, // Use id first, fallback to _id
+          appointid: appointment.id || appointment._id,
           doctorId: appointment.doctorId || appointment.doctor?.id,
           doctorname: appointment.doctor
             ? `${appointment.doctor.firstname} ${appointment.doctor.lastname}`
-            : `${appointment.patient?.firstname || "Doctor"} ${
+            : `${appointment.patient?.firstname || "Bác sĩ"} ${
                 appointment.patient?.lastname || ""
               }`,
         },
@@ -123,14 +126,126 @@ const Appointments = () => {
           },
         }
       );
-      toast.success("Appointment completed successfully.");
+      toast.success("Cuộc hẹn đã được hoàn thành thành công.");
       fetchAppointments();
     } catch (error) {
       console.error("Error completing appointment:", error);
-      toast.error("Failed to complete appointment. Please try again.");
+      toast.error("Không thể hoàn thành cuộc hẹn. Vui lòng thử lại.");
     } finally {
       dispatch(setLoading(false));
     }
+  };
+
+  /**
+   * Marks an appointment as rejected
+   * @param {Object} appointment - The appointment to reject
+   */
+  const rejectAppointment = async (appointment) => {
+    try {
+      const confirm = window.confirm("Bạn có chắc chắn muốn từ chối cuộc hẹn này?");
+      if (!confirm) return;
+
+      dispatch(setLoading(true));
+      await axios.put(
+        "/appointment/rejected",
+        {
+          appointid: appointment.id || appointment._id,
+          doctorId: appointment.doctorId || appointment.doctor?.id,
+          doctorname: appointment.doctor
+            ? `${appointment.doctor.firstname} ${appointment.doctor.lastname}`
+            : `${appointment.patient?.firstname || "Bác sĩ"} ${
+                appointment.patient?.lastname || ""
+              }`,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      toast.success("Cuộc hẹn đã được từ chối thành công.");
+      fetchAppointments();
+    } catch (error) {
+      console.error("Error rejecting appointment:", error);
+      toast.error("Không thể từ chối cuộc hẹn. Vui lòng thử lại.");
+    } finally {
+      dispatch(setLoading(false));
+    }
+  };
+
+  /**
+   * Renders action buttons based on appointment status
+   * @param {Object} appointment - The appointment object
+   * @returns {JSX.Element} - Action buttons
+   */
+  const renderActionButtons = (appointment) => {
+    const isCompleted = appointment.status === "Completed";
+    const isRejected = appointment.status === "Rejected";
+
+    return (
+      <div className="appointment-actions">
+        <button
+          className={`btn user-btn ${
+            isCompleted
+              ? "completed-btn"
+              : isRejected
+              ? "disabled-btn"
+              : "accept-btn"
+          }`}
+          onClick={() => !isCompleted && !isRejected && completeAppointment(appointment)}
+          disabled={isCompleted || isRejected}
+          style={{
+            backgroundColor: isCompleted
+              ? "#28a745"
+              : isRejected
+              ? "#6c757d"
+              : "",
+            cursor: isCompleted || isRejected ? "not-allowed" : "pointer",
+            opacity: isRejected ? 0.6 : 1,
+          }}
+          aria-label={
+            isCompleted
+              ? "Cuộc hẹn đã hoàn thành"
+              : isRejected
+              ? "Cuộc hẹn đã từ chối"
+              : "Đánh dấu cuộc hẹn là hoàn thành"
+          }
+        >
+          {isCompleted ? "Đã hoàn thành" : isRejected ? "Hoàn thành" : "Hoàn thành"}
+        </button>
+
+        <button
+          className={`btn user-btn ${
+            isRejected
+              ? "rejected-btn"
+              : isCompleted
+              ? "disabled-btn"
+              : "reject-btn"
+          }`}
+          onClick={() => !isCompleted && !isRejected && rejectAppointment(appointment)}
+          disabled={isCompleted || isRejected}
+          style={{
+            backgroundColor: isRejected
+              ? "#dc3545"
+              : isCompleted
+              ? "#6c757d"
+              : "#dc3545",
+            cursor: isCompleted || isRejected ? "not-allowed" : "pointer",
+            opacity: isCompleted ? 0.6 : 1,
+            marginLeft: "0.5rem",
+          }}
+          aria-label={
+            isRejected
+              ? "Cuộc hẹn đã từ chối"
+              : isCompleted
+              ? "Không thể từ chối cuộc hẹn đã hoàn thành"
+              : "Từ chối cuộc hẹn"
+          }
+        >
+          {isRejected ? "Đã từ chối" : isCompleted ? "Từ chối" : "Từ chối"}
+        </button>
+      </div>
+    );
   };
 
   return (
@@ -141,7 +256,7 @@ const Appointments = () => {
           <Loading />
         ) : (
           <section className="container notif-section">
-            <h2 className="page-heading">Your Appointments</h2>
+            <h2 className="page-heading">Cuộc hẹn của bạn</h2>
 
             {appointments.length > 0 ? (
               <div className="appointments">
@@ -149,17 +264,17 @@ const Appointments = () => {
                   <table className="appointment-table">
                     <thead>
                       <tr>
-                        <th scope="col">S.No</th>
-                        <th scope="col">Doctor</th>
-                        <th scope="col">Patient Name</th>
-                        <th scope="col">Age</th>
-                        <th scope="col">Gender</th>
-                        <th scope="col">Mobile</th>
-                        <th scope="col">Blood Group</th>
-                        <th scope="col">Family Medical History</th>
-                        <th scope="col">Date</th>
-                        <th scope="col">Status</th>
-                        <th scope="col">Actions</th>
+                        <th scope="col">STT</th>
+                        <th scope="col">Bác sĩ</th>
+                        <th scope="col">Tên bệnh nhân</th>
+                        <th scope="col">Tuổi</th>
+                        <th scope="col">Giới tính</th>
+                        <th scope="col">Số điện thoại</th>
+                        <th scope="col">Nhóm máu</th>
+                        <th scope="col">Tiền sử bệnh lý</th>
+                        <th scope="col">Ngày</th>
+                        <th scope="col">Trạng thái</th>
+                        <th scope="col">Hành động</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -185,7 +300,7 @@ const Appointments = () => {
                           <td>{appointment.number}</td>
                           <td>{appointment.bloodGroup || "N/A"}</td>
                           <td className="family-diseases">
-                            {appointment.familyDiseases || "None"}
+                            {appointment.familyDiseases || "Không có"}
                           </td>
                           <td>
                             {new Date(appointment.date).toLocaleDateString()}
@@ -193,19 +308,16 @@ const Appointments = () => {
                           <td
                             className={`status ${appointment.status.toLowerCase()}`}
                           >
-                            {appointment.status}
+                            {appointment.status === "Completed" 
+                              ? "Đã hoàn thành" 
+                              : appointment.status === "Rejected" 
+                              ? "Đã từ chối" 
+                              : appointment.status === "Pending"
+                              ? "Đang chờ"
+                              : appointment.status}
                           </td>
                           <td>
-                            <button
-                              className="btn user-btn complete-btn"
-                              onClick={() => completeAppointment(appointment)}
-                              disabled={appointment.status === "Completed"}
-                              aria-label="Mark appointment as completed"
-                            >
-                              {appointment.status === "Completed"
-                                ? "Completed"
-                                : "Complete"}
-                            </button>
+                            {renderActionButtons(appointment)}
                           </td>
                         </tr>
                       ))}
@@ -217,16 +329,16 @@ const Appointments = () => {
                   <div
                     className="pagination"
                     role="navigation"
-                    aria-label="Pagination"
+                    aria-label="Điều hướng phân trang"
                   >
                     <button
                       onClick={() =>
                         handlePageChange(Math.max(1, currentPage - 1))
                       }
                       disabled={currentPage === 1}
-                      aria-label="Previous page"
+                      aria-label="Trang trước"
                     >
-                      &laquo; Prev
+                      &laquo; Trước
                     </button>
 
                     {renderPagination()}
@@ -236,15 +348,15 @@ const Appointments = () => {
                         handlePageChange(Math.min(totalPages, currentPage + 1))
                       }
                       disabled={currentPage === totalPages}
-                      aria-label="Next page"
+                      aria-label="Trang sau"
                     >
-                      Next &raquo;
+                      Sau &raquo;
                     </button>
                   </div>
                 )}
               </div>
             ) : (
-              <Empty message="No appointments found. Schedule an appointment with a doctor." />
+              <Empty message="Không tìm thấy cuộc hẹn nào. Hãy đặt lịch hẹn với bác sĩ." />
             )}
           </section>
         )}

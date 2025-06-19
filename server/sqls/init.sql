@@ -139,3 +139,27 @@ CREATE TABLE IF NOT EXISTS DoctorSpecifications (
   INDEX idx_doctor (doctorId),
   INDEX idx_specification (specificationId)
 );
+
+-- Insert admin user with hashed password
+-- Original password: 123456
+-- Hashed with bcrypt salt rounds 10
+
+INSERT INTO Users (
+    firstname,
+    lastname,
+    email,
+    password,
+    role,
+    pic,
+    createdAt,
+    updatedAt
+) VALUES (
+    'Admin',
+    'User',
+    'admin@example.com',
+    '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+    'Admin',
+    'https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg',
+    NOW(),
+    NOW()
+);

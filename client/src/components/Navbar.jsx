@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { HashLink } from "react-router-hash-link";
 import { useDispatch, useSelector } from "react-redux";
@@ -7,6 +7,7 @@ import { FiMenu } from "react-icons/fi";
 import { RxCross1 } from "react-icons/rx";
 import jwt_decode from "jwt-decode";
 import axios from "axios";
+import fetchData from "../helper/apiCall";
 import "../styles/navbar.css";
 
 // Set the base URL for all axios requests
@@ -20,16 +21,61 @@ axios.defaults.baseURL = process.env.REACT_APP_SERVER_DOMAIN;
 const Navbar = () => {
   // State to manage mobile menu visibility
   const [menuOpen, setMenuOpen] = useState(false);
-  
+  // State to manage unread notification count
+  const [unreadCount, setUnreadCount] = useState(0);
+
   // Redux and routing hooks
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  
+
   // Authentication state
   const token = localStorage.getItem("token") || "";
   const user = token ? jwt_decode(token) : null;
   const { userInfo } = useSelector((state) => state.root);
-  
+
+  /**
+   * Fetches unread notification count from API
+   */
+  const fetchUnreadCount = async () => {
+    if (!user) return;
+
+    try {
+      const response = await fetchData("/notification/unreadcount");
+      if (response && typeof response.count === "number") {
+        setUnreadCount(response.count);
+      }
+    } catch (error) {
+      console.error("Error fetching unread count:", error);
+      setUnreadCount(0);
+    }
+  };
+
+  // Fetch unread count when component mounts or user changes
+  useEffect(() => {
+    fetchUnreadCount();
+  }, [user]);
+
+  // Set up interval to periodically update unread count
+  useEffect(() => {
+    if (!user) return;
+
+    const interval = setInterval(() => {
+      fetchUnreadCount();
+    }, 30000); // Update every 30 seconds
+
+    // Listen for custom event when notifications are read
+    const handleNotificationsRead = () => {
+      setUnreadCount(0);
+    };
+
+    window.addEventListener("notificationsRead", handleNotificationsRead);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("notificationsRead", handleNotificationsRead);
+    };
+  }, [user]);
+
   /**
    * Handles user logout
    * Clears user data from Redux store and localStorage, then redirects to login
@@ -37,14 +83,25 @@ const Navbar = () => {
   const handleLogout = () => {
     dispatch(setUserInfo({}));
     localStorage.removeItem("token");
+    setUnreadCount(0); // Reset unread count on logout
     navigate("/login");
   };
-  
+
   /**
    * Toggles the mobile menu state
    */
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
+  };
+
+  /**
+   * Handles notification link click - refresh unread count
+   */
+  const handleNotificationClick = () => {
+    // Reset unread count when user clicks on notifications
+    setTimeout(() => {
+      fetchUnreadCount();
+    }, 1000); // Delay to allow notifications to be marked as read
   };
 
   /**
@@ -56,20 +113,31 @@ const Navbar = () => {
       return (
         <>
           <li>
-            <NavLink className="btn" to="/login">Đăng nhập</NavLink>
+            <NavLink className="btn" to="/login">
+              Đăng nhập
+            </NavLink>
           </li>
           <li>
-            <NavLink className="btn" to="/register">Đăng ký</NavLink>
+            <NavLink className="btn" to="/register">
+              Đăng ký
+            </NavLink>
           </li>
         </>
       );
     }
-    
+
     // Common links for authenticated users
     const commonLinks = (
       <>
-        <li>
-          <NavLink to="/notifications">Thông báo</NavLink>
+        <li className="notification-link">
+          <NavLink to="/notifications" onClick={handleNotificationClick}>
+            Thông báo
+            {unreadCount > 0 && (
+              <span className="notification-badge">
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
+            )}
+          </NavLink>
         </li>
         <li>
           <HashLink to="/#contact">Liên lạc với chúng tôi</HashLink>
@@ -81,11 +149,13 @@ const Navbar = () => {
           <NavLink to="/ChangePassword">Đổi mật khẩu</NavLink>
         </li>
         <li>
-          <span className="btn" onClick={handleLogout}>Đăng xuất</span>
+          <span className="btn" onClick={handleLogout}>
+            Đăng xuất
+          </span>
         </li>
       </>
     );
-    
+
     // Doctor-specific links
     if (user.role === "Doctor") {
       return (
@@ -100,7 +170,7 @@ const Navbar = () => {
         </>
       );
     }
-    
+
     // Patient-specific links
     if (user.role === "Patient") {
       return (
@@ -112,7 +182,7 @@ const Navbar = () => {
         </>
       );
     }
-    
+
     return commonLinks;
   };
 
@@ -124,7 +194,7 @@ const Navbar = () => {
         <h2 className="nav-logo">
           <NavLink to="/">Đặt lịch khám bệnh</NavLink>
         </h2>
-        
+
         {/* Navigation links */}
         <ul className="nav-links">
           <li>
@@ -133,13 +203,21 @@ const Navbar = () => {
           {renderRoleBasedLinks()}
         </ul>
       </nav>
-      
+
       {/* Mobile menu toggle buttons */}
       <div className="menu-icons">
         {!menuOpen ? (
-          <FiMenu className="menu-open" onClick={toggleMenu} aria-label="Open menu" />
+          <FiMenu
+            className="menu-open"
+            onClick={toggleMenu}
+            aria-label="Open menu"
+          />
         ) : (
-          <RxCross1 className="menu-close" onClick={toggleMenu} aria-label="Close menu" />
+          <RxCross1
+            className="menu-close"
+            onClick={toggleMenu}
+            aria-label="Close menu"
+          />
         )}
       </div>
     </header>
