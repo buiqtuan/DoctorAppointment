@@ -319,7 +319,7 @@ function Register() {
               aria-label="Select your role"
             >
               <option value="">Chọn vai trò</option>
-              <option value="Admin">Admin</option>
+              {/* <option value="Admin">Admin</option> */}
               <option value="Doctor">Bác sĩ</option>
               <option value="Patient">Bệnh nhân</option>
             </select>
