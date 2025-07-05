@@ -144,7 +144,7 @@ const AdminDoctors = () => {
         <td>{doctor?.user?.mobile || "N/A"}</td>
         <td>{doctor?.experience || "N/A"}</td>
         <td>{doctor?.specialization || "N/A"}</td>
-        <td>${doctor?.fees || "0"}</td>
+        <td>(VNĐ){doctor?.fees || "0"}</td>
         <td className="select">
           <button
             className="btn user-btn"

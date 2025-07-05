@@ -36,8 +36,13 @@ const Appointments = () => {
   const dispatch = useDispatch();
   const { loading } = useSelector((state) => state.root);
 
-  // Get user ID from JWT token
-  const { userId } = jwt_decode(localStorage.getItem("token"));
+  // Get user information from JWT token
+  const token = localStorage.getItem("token");
+  const decodedToken = jwt_decode(token);
+  const { userId } = decodedToken;
+  
+  // Check if current user is a doctor
+  const isDoctor = decodedToken.isDoctor || decodedToken.role === "Doctor";
 
   /**
    * Fetches all appointments for the current user
@@ -137,6 +142,37 @@ const Appointments = () => {
   };
 
   /**
+   * Confirms an appointment (Doctor only)
+   * @param {Object} appointment - The appointment to confirm
+   */
+  const confirmAppointment = async (appointment) => {
+    try {
+      const confirm = window.confirm("Bạn có chắc chắn muốn xác nhận cuộc hẹn này?");
+      if (!confirm) return;
+
+      dispatch(setLoading(true));
+      await axios.put(
+        "/appointment/confirmappointment",
+        {
+          appointid: appointment.id || appointment._id,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      toast.success("Cuộc hẹn đã được xác nhận thành công.");
+      fetchAppointments();
+    } catch (error) {
+      console.error("Error confirming appointment:", error);
+      toast.error("Không thể xác nhận cuộc hẹn. Vui lòng thử lại.");
+    } finally {
+      dispatch(setLoading(false));
+    }
+  };
+
+  /**
    * Marks an appointment as rejected
    * @param {Object} appointment - The appointment to reject
    */
@@ -150,12 +186,6 @@ const Appointments = () => {
         "/appointment/rejected",
         {
           appointid: appointment.id || appointment._id,
-          doctorId: appointment.doctorId || appointment.doctor?.id,
-          doctorname: appointment.doctor
-            ? `${appointment.doctor.firstname} ${appointment.doctor.lastname}`
-            : `${appointment.patient?.firstname || "Bác sĩ"} ${
-                appointment.patient?.lastname || ""
-              }`,
         },
         {
           headers: {
@@ -167,23 +197,84 @@ const Appointments = () => {
       fetchAppointments();
     } catch (error) {
       console.error("Error rejecting appointment:", error);
-      toast.error("Không thể từ chối cuộc hẹn. Vui lòng thử lại.");
+      if (error.response) {
+        toast.error(error.response.data || "Không thể từ chối cuộc hẹn. Vui lòng thử lại.");
+      } else {
+        toast.error("Không thể từ chối cuộc hẹn. Vui lòng thử lại.");
+      }
     } finally {
       dispatch(setLoading(false));
     }
   };
 
   /**
-   * Renders action buttons based on appointment status
+   * Renders action buttons based on appointment status and user type
    * @param {Object} appointment - The appointment object
    * @returns {JSX.Element} - Action buttons
    */
   const renderActionButtons = (appointment) => {
     const isCompleted = appointment.status === "Completed";
     const isRejected = appointment.status === "Rejected";
+    const isWaitingForConfirmation = appointment.status === "Waiting_for_confirmation";
 
+    // For patients, only show reject button
+    if (!isDoctor) {
+      const canReject = !isCompleted && !isRejected;
+      
+      return (
+        <div className="appointment-actions">
+          <button
+            className={`btn user-btn ${
+              isRejected
+                ? "rejected-btn"
+                : isCompleted
+                ? "disabled-btn"
+                : "reject-btn"
+            }`}
+            onClick={() => canReject && rejectAppointment(appointment)}
+            disabled={!canReject}
+            style={{
+              backgroundColor: isRejected
+                ? "#dc3545"
+                : isCompleted
+                ? "#6c757d"
+                : "#dc3545",
+              cursor: canReject ? "pointer" : "not-allowed",
+              opacity: canReject ? 1 : 0.6,
+            }}
+            aria-label={
+              isRejected
+                ? "Cuộc hẹn đã từ chối"
+                : isCompleted
+                ? "Không thể từ chối cuộc hẹn đã hoàn thành"
+                : "Từ chối cuộc hẹn"
+            }
+          >
+            {isRejected ? "Đã từ chối" : "Từ chối"}
+          </button>
+        </div>
+      );
+    }
+
+    // For doctors, show all action buttons
     return (
       <div className="appointment-actions">
+        {/* Show confirm button only for doctors when status is waiting for confirmation */}
+        {isWaitingForConfirmation && (
+          <button
+            className="btn user-btn confirm-btn"
+            onClick={() => confirmAppointment(appointment)}
+            style={{
+              backgroundColor: "#007bff",
+              color: "white",
+              marginRight: "0.5rem",
+            }}
+            aria-label="Xác nhận cuộc hẹn"
+          >
+            Xác nhận
+          </button>
+        )}
+
         <button
           className={`btn user-btn ${
             isCompleted
@@ -192,22 +283,24 @@ const Appointments = () => {
               ? "disabled-btn"
               : "accept-btn"
           }`}
-          onClick={() => !isCompleted && !isRejected && completeAppointment(appointment)}
-          disabled={isCompleted || isRejected}
+          onClick={() => !isCompleted && !isRejected && !isWaitingForConfirmation && completeAppointment(appointment)}
+          disabled={isCompleted || isRejected || isWaitingForConfirmation}
           style={{
             backgroundColor: isCompleted
               ? "#28a745"
               : isRejected
               ? "#6c757d"
               : "",
-            cursor: isCompleted || isRejected ? "not-allowed" : "pointer",
-            opacity: isRejected ? 0.6 : 1,
+            cursor: isCompleted || isRejected || isWaitingForConfirmation ? "not-allowed" : "pointer",
+            opacity: isRejected || isWaitingForConfirmation ? 0.6 : 1,
           }}
           aria-label={
             isCompleted
               ? "Cuộc hẹn đã hoàn thành"
               : isRejected
               ? "Cuộc hẹn đã từ chối"
+              : isWaitingForConfirmation
+              ? "Cần xác nhận trước khi hoàn thành"
               : "Đánh dấu cuộc hẹn là hoàn thành"
           }
         >
@@ -222,16 +315,16 @@ const Appointments = () => {
               ? "disabled-btn"
               : "reject-btn"
           }`}
-          onClick={() => !isCompleted && !isRejected && rejectAppointment(appointment)}
-          disabled={isCompleted || isRejected}
+          onClick={() => !isCompleted && !isRejected && !isWaitingForConfirmation && rejectAppointment(appointment)}
+          disabled={isCompleted || isRejected || isWaitingForConfirmation}
           style={{
             backgroundColor: isRejected
               ? "#dc3545"
               : isCompleted
               ? "#6c757d"
               : "#dc3545",
-            cursor: isCompleted || isRejected ? "not-allowed" : "pointer",
-            opacity: isCompleted ? 0.6 : 1,
+            cursor: isCompleted || isRejected || isWaitingForConfirmation ? "not-allowed" : "pointer",
+            opacity: isCompleted || isWaitingForConfirmation ? 0.6 : 1,
             marginLeft: "0.5rem",
           }}
           aria-label={
@@ -239,6 +332,8 @@ const Appointments = () => {
               ? "Cuộc hẹn đã từ chối"
               : isCompleted
               ? "Không thể từ chối cuộc hẹn đã hoàn thành"
+              : isWaitingForConfirmation
+              ? "Cần xác nhận trước khi từ chối"
               : "Từ chối cuộc hẹn"
           }
         >
@@ -314,6 +409,8 @@ const Appointments = () => {
                               ? "Đã từ chối" 
                               : appointment.status === "Pending"
                               ? "Đang chờ"
+                              : appointment.status === "Waiting_for_confirmation"
+                              ? "Chờ xác nhận"
                               : appointment.status}
                           </td>
                           <td>
