@@ -116,6 +116,20 @@ const AdminDoctors = () => {
   const filteredDoctors = getFilteredDoctors();
 
   /**
+   * Formats a number with dots as thousand separators
+   * @param {number|string} number - The number to format
+   * @returns {string} - Formatted number with dots
+   */
+  const formatCurrency = (amount) => {
+    if (!amount || isNaN(amount)) return "0,00";
+    
+    return new Intl.NumberFormat('de-DE', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(amount);
+  };
+
+  /**
    * Renders a table row for each doctor
    * @param {Object} doctor - The doctor data
    * @param {number} index - The index of the doctor in the array
@@ -144,7 +158,7 @@ const AdminDoctors = () => {
         <td>{doctor?.user?.mobile || "N/A"}</td>
         <td>{doctor?.experience || "N/A"}</td>
         <td>{doctor?.specialization || "N/A"}</td>
-        <td>(VNĐ){doctor?.fees || "0"}</td>
+        <td>{formatCurrency(doctor?.fees)} VNĐ</td>
         <td className="select">
           <button
             className="btn user-btn"

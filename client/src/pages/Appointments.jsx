@@ -40,7 +40,7 @@ const Appointments = () => {
   const token = localStorage.getItem("token");
   const decodedToken = jwt_decode(token);
   const { userId } = decodedToken;
-  
+
   // Check if current user is a doctor
   const isDoctor = decodedToken.isDoctor || decodedToken.role === "Doctor";
 
@@ -121,9 +121,8 @@ const Appointments = () => {
           doctorId: appointment.doctorId || appointment.doctor?.id,
           doctorname: appointment.doctor
             ? `${appointment.doctor.firstname} ${appointment.doctor.lastname}`
-            : `${appointment.patient?.firstname || "Bác sĩ"} ${
-                appointment.patient?.lastname || ""
-              }`,
+            : `${appointment.patient?.firstname || "Bác sĩ"} ${appointment.patient?.lastname || ""
+            }`,
         },
         {
           headers: {
@@ -220,25 +219,24 @@ const Appointments = () => {
     // For patients, only show reject button
     if (!isDoctor) {
       const canReject = !isCompleted && !isRejected;
-      
+
       return (
         <div className="appointment-actions">
           <button
-            className={`btn user-btn ${
-              isRejected
+            className={`btn user-btn ${isRejected
                 ? "rejected-btn"
                 : isCompleted
-                ? "disabled-btn"
-                : "reject-btn"
-            }`}
+                  ? "disabled-btn"
+                  : "reject-btn"
+              }`}
             onClick={() => canReject && rejectAppointment(appointment)}
             disabled={!canReject}
             style={{
               backgroundColor: isRejected
                 ? "#dc3545"
                 : isCompleted
-                ? "#6c757d"
-                : "#dc3545",
+                  ? "#6c757d"
+                  : "#dc3545",
               cursor: canReject ? "pointer" : "not-allowed",
               opacity: canReject ? 1 : 0.6,
             }}
@@ -246,8 +244,8 @@ const Appointments = () => {
               isRejected
                 ? "Cuộc hẹn đã từ chối"
                 : isCompleted
-                ? "Không thể từ chối cuộc hẹn đã hoàn thành"
-                : "Từ chối cuộc hẹn"
+                  ? "Không thể từ chối cuộc hẹn đã hoàn thành"
+                  : "Từ chối cuộc hẹn"
             }
           >
             {isRejected ? "Đã từ chối" : "Từ chối"}
@@ -276,21 +274,20 @@ const Appointments = () => {
         )}
 
         <button
-          className={`btn user-btn ${
-            isCompleted
+          className={`btn user-btn ${isCompleted
               ? "completed-btn"
               : isRejected
-              ? "disabled-btn"
-              : "accept-btn"
-          }`}
+                ? "disabled-btn"
+                : "accept-btn"
+            }`}
           onClick={() => !isCompleted && !isRejected && !isWaitingForConfirmation && completeAppointment(appointment)}
           disabled={isCompleted || isRejected || isWaitingForConfirmation}
           style={{
             backgroundColor: isCompleted
               ? "#28a745"
               : isRejected
-              ? "#6c757d"
-              : "",
+                ? "#6c757d"
+                : "",
             cursor: isCompleted || isRejected || isWaitingForConfirmation ? "not-allowed" : "pointer",
             opacity: isRejected || isWaitingForConfirmation ? 0.6 : 1,
           }}
@@ -298,43 +295,40 @@ const Appointments = () => {
             isCompleted
               ? "Cuộc hẹn đã hoàn thành"
               : isRejected
-              ? "Cuộc hẹn đã từ chối"
-              : isWaitingForConfirmation
-              ? "Cần xác nhận trước khi hoàn thành"
-              : "Đánh dấu cuộc hẹn là hoàn thành"
+                ? "Cuộc hẹn đã từ chối"
+                : isWaitingForConfirmation
+                  ? "Cần xác nhận trước khi hoàn thành"
+                  : "Đánh dấu cuộc hẹn là hoàn thành"
           }
         >
           {isCompleted ? "Đã hoàn thành" : isRejected ? "Hoàn thành" : "Hoàn thành"}
         </button>
 
         <button
-          className={`btn user-btn ${
-            isRejected
+          className={`btn user-btn ${isRejected
               ? "rejected-btn"
               : isCompleted
-              ? "disabled-btn"
-              : "reject-btn"
-          }`}
-          onClick={() => !isCompleted && !isRejected && !isWaitingForConfirmation && rejectAppointment(appointment)}
-          disabled={isCompleted || isRejected || isWaitingForConfirmation}
+                ? "disabled-btn"
+                : "reject-btn"
+            }`}
+          onClick={() => !isCompleted && !isRejected && rejectAppointment(appointment)}
+          disabled={isCompleted || isRejected}
           style={{
             backgroundColor: isRejected
               ? "#dc3545"
               : isCompleted
-              ? "#6c757d"
-              : "#dc3545",
-            cursor: isCompleted || isRejected || isWaitingForConfirmation ? "not-allowed" : "pointer",
-            opacity: isCompleted || isWaitingForConfirmation ? 0.6 : 1,
+                ? "#6c757d"
+                : "#dc3545",
+            cursor: isCompleted || isRejected ? "not-allowed" : "pointer",
+            opacity: isCompleted ? 0.6 : 1,
             marginLeft: "0.5rem",
           }}
           aria-label={
             isRejected
               ? "Cuộc hẹn đã từ chối"
               : isCompleted
-              ? "Không thể từ chối cuộc hẹn đã hoàn thành"
-              : isWaitingForConfirmation
-              ? "Cần xác nhận trước khi từ chối"
-              : "Từ chối cuộc hẹn"
+                ? "Không thể từ chối cuộc hẹn đã hoàn thành"
+                : "Từ chối cuộc hẹn"
           }
         >
           {isRejected ? "Đã từ chối" : isCompleted ? "Từ chối" : "Từ chối"}
@@ -386,9 +380,8 @@ const Appointments = () => {
                           <td>
                             {appointment.patient
                               ? `${appointment.patient.firstname} ${appointment.patient.lastname}`
-                              : `${appointment.userId?.firstname || "N/A"} ${
-                                  appointment.userId?.lastname || ""
-                                }`}
+                              : `${appointment.userId?.firstname || "N/A"} ${appointment.userId?.lastname || ""
+                              }`}
                           </td>
                           <td>{appointment.age}</td>
                           <td>{appointment.gender}</td>
@@ -403,15 +396,15 @@ const Appointments = () => {
                           <td
                             className={`status ${appointment.status.toLowerCase()}`}
                           >
-                            {appointment.status === "Completed" 
-                              ? "Đã hoàn thành" 
-                              : appointment.status === "Rejected" 
-                              ? "Đã từ chối" 
-                              : appointment.status === "Pending"
-                              ? "Đang chờ"
-                              : appointment.status === "Waiting_for_confirmation"
-                              ? "Chờ xác nhận"
-                              : appointment.status}
+                            {appointment.status === "Completed"
+                              ? "Đã hoàn thành"
+                              : appointment.status === "Rejected"
+                                ? "Đã từ chối"
+                                : appointment.status === "Pending"
+                                  ? "Đang chờ"
+                                  : appointment.status === "Waiting_for_confirmation"
+                                    ? "Chờ xác nhận"
+                                    : appointment.status}
                           </td>
                           <td>
                             {renderActionButtons(appointment)}

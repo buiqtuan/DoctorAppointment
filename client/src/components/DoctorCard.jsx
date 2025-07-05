@@ -46,6 +46,20 @@ const DoctorCard = ({ ele }) => {
   const defaultProfileImg =
     "https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg";
 
+  /**
+   * Formats currency in Vietnamese style (1.000.000,00)
+   * @param {number} amount - The amount to format
+   * @returns {string} - Formatted currency string
+   */
+  const formatCurrency = (amount) => {
+    if (!amount || isNaN(amount)) return "0,00";
+    
+    return new Intl.NumberFormat('de-DE', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(amount);
+  };
+
   return (
     <div className="card">
       <div className="card-img flex-center" onClick={handleViewProfile} style={{ cursor: 'pointer' }}>
@@ -70,7 +84,7 @@ const DoctorCard = ({ ele }) => {
       </p>
 
       <p className="fees">
-        <strong>Phí: </strong> (VNĐ) {fees || 0}
+        <strong>Phí: </strong> {formatCurrency(fees || 0)} VNĐ
       </p>
 
       <p className="phone">
